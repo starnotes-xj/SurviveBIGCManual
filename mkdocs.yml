@@ -101,7 +101,8 @@ nav:
       - Cherry Lab题解: 02-技术方向/CTF竞技/Cherry-Lab题解.md
       - USB Hacker题解: 02-技术方向/CTF竞技/USB-Hacker题解.md
     - 环境搭建:
-      - Kali安装（物理机）: 02-技术方向/环境搭建/Kali安装（物理机）.md
+      - Kali安装（VMware）: 02-技术方向/环境搭建/Kali安装（VMware）.md
+      - Kali安装中文输入法: 02-技术方向/环境搭建/Kali安装Fcitx5输入法.md
       - GZCTF部署: 02-技术方向/环境搭建/GZCTF部署.md
     - 开发技能:
       - SpringAI: 02-技术方向/开发技能/SpringAI.md
@@ -118,6 +119,7 @@ nav:
     - 开发环境:
       - CLion配置: 03-工具与问题/开发环境/CLion配置.md
       - Rebased Git客户端: 03-工具与问题/开发环境/Rebased.md
+      - Docker: 03-工具与问题/开发环境/Docker.md
   - 账号与工具:
     - 04-账号与工具/index.md
     - 梯子获取: 04-账号与工具/梯子获取.md
@@ -125,6 +127,7 @@ nav:
     - GitHub:
       - 注册与配置: 04-账号与工具/GitHub注册与使用/注册与配置.md
       - 教育优惠申请: 04-账号与工具/GitHub注册与使用/教育优惠申请.md
+      - 如何提交PR: 04-账号与工具/GitHub注册与使用/提交PR.md
     - Google账号:
       - 注册与常见问题: 04-账号与工具/Google账号/注册与常见问题.md
     - JetBrains:
@@ -132,10 +135,11 @@ nav:
     - Notion:
       - 注册与入门: 04-账号与工具/Notion/注册与入门.md
       - 教育优惠申请: 04-账号与工具/Notion/教育优惠申请.md
+    - ChatGPT:
+      - 订阅方案: 04-账号与工具/ChatGPT/订阅方案.md
     - Claude Code:
       - 快速入门: 04-账号与工具/Claude-Code/快速入门.md
       - 订阅方案: 04-账号与工具/Claude-Code/订阅方案.md
-      - GBox解决Google Play问题: 04-账号与工具/Claude-Code/GBox解决部分安卓手机无法使用Google Play问题.md
       - Cowork RPC修复: 04-账号与工具/Claude-Code/Cowork-RPC修复.md
       - 插件安装说明: 04-账号与工具/Claude-Code/插件安装说明.md
       - GithubMCP配置: 04-账号与工具/Claude-Code/GithubMCP配置.md
