@@ -1,0 +1,153 @@
+site_name: 北京印刷学院信息安全生存手册
+site_description: 面向北京印刷学院信息安全专业学生的实用指南
+site_author: 星记
+docs_dir: docs
+copyright: Copyright &copy; 2025 北印信息安全专业同学共同维护 · MIT License
+
+theme:
+  name: material
+  language: zh
+  custom_dir: docs/overrides
+  font:
+    text: Noto Sans SC
+    code: Courier Prime
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: 切换到深色模式
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: 切换到浅色模式
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.footer
+    - navigation.indexes
+    - search.highlight
+    - search.suggest
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tooltips
+    - announce.dismiss
+  icon:
+    repo: fontawesome/brands/github
+    admonition:
+      note: octicons/tag-16
+      tip: octicons/squirrel-16
+      warning: octicons/alert-16
+      info: octicons/info-16
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com
+      name: GitHub
+  generator: false
+
+extra_css:
+  - stylesheets/extra.css
+
+plugins:
+  - search:
+      lang: zh
+  - tags
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      title: 本页目录
+
+nav:
+  - 首页: index.md
+  - 入门:
+    - 01-入门/index.md
+    - 专业介绍: 01-入门/专业介绍.md
+    - 学习路径: 01-入门/学习路径.md
+    - 必备工具清单: 01-入门/必备工具清单.md
+  - 技术方向:
+    - 02-技术方向/index.md
+    - CTF竞技:
+      - CTF是什么: 02-技术方向/CTF竞技/CTF是什么.md
+      - 学习资源: 02-技术方向/CTF竞技/学习资源.md
+      - 平台使用: 02-技术方向/CTF竞技/平台使用.md
+      - Cherry Lab题解: 02-技术方向/CTF竞技/Cherry-Lab题解.md
+      - USB Hacker题解: 02-技术方向/CTF竞技/USB-Hacker题解.md
+    - 环境搭建:
+      - Kali安装（物理机）: 02-技术方向/环境搭建/Kali安装（物理机）.md
+      - GZCTF部署: 02-技术方向/环境搭建/GZCTF部署.md
+    - 开发技能:
+      - SpringAI: 02-技术方向/开发技能/SpringAI.md
+      - SpringBoot工具类: 02-技术方向/开发技能/SpringBoot工具类.md
+      - 正则表达式: 02-技术方向/开发技能/正则表达式.md
+      - 函数式编程: 02-技术方向/开发技能/函数式编程.md
+      - 微信小程序通知推送: 02-技术方向/开发技能/微信小程序通知推送.md
+      - 线索二叉树: 02-技术方向/开发技能/线索二叉树.md
+  - 工具与问题:
+    - 03-工具与问题/index.md
+    - Linux常见问题:
+      - 双击无法运行应用: 03-工具与问题/Linux常见问题/双击无法运行应用.md
+      - Ubuntu root登录: 03-工具与问题/Linux常见问题/Ubuntu-root登录.md
+      - pip外部环境安装: 03-工具与问题/Linux常见问题/pip外部环境安装.md
+      - PATH变量配置: 03-工具与问题/Linux常见问题/PATH变量配置.md
+    - 开发环境:
+      - CLion配置: 03-工具与问题/开发环境/CLion配置.md
+      - JetBrains密码恢复: 03-工具与问题/开发环境/JetBrains密码恢复.md
+      - Maven打包: 03-工具与问题/开发环境/Maven打包.md
+      - Lombok符号找不到: 03-工具与问题/开发环境/Lombok符号找不到.md
+      - 搜狗输入法安装: 03-工具与问题/开发环境/搜狗输入法安装.md
+  - 账号与工具:
+    - 04-账号与工具/index.md
+    - 梯子获取: 04-账号与工具/梯子获取.md
+    - 教育邮箱申请: 04-账号与工具/教育邮箱申请.md
+    - GitHub:
+      - 注册与配置: 04-账号与工具/GitHub注册与使用/注册与配置.md
+      - 教育优惠申请: 04-账号与工具/GitHub注册与使用/教育优惠申请.md
+    - Google账号:
+      - 注册与常见问题: 04-账号与工具/Google账号/注册与常见问题.md
+    - JetBrains:
+      - 许可证申请: 04-账号与工具/JetBrains/许可证申请.md
+    - Notion:
+      - 注册与入门: 04-账号与工具/Notion/注册与入门.md
+      - 教育优惠申请: 04-账号与工具/Notion/教育优惠申请.md
+    - Claude Code:
+      - 快速入门: 04-账号与工具/Claude-Code/快速入门.md
+      - 插件安装说明: 04-账号与工具/Claude-Code/插件安装说明.md
+      - GithubMCP配置: 04-账号与工具/Claude-Code/GithubMCP配置.md
+      - 自动PR代码审核: 04-账号与工具/Claude-Code/自动PR代码审核.md
+      - 自动更新文档: 04-账号与工具/Claude-Code/自动更新文档.md
+  - 校园生活:
+    - 05-校园生活/index.md
+    - 银行卡办理:
+      - 北京银行卡: 05-校园生活/银行卡办理/北京银行卡.md
+      - 工商银行Visa卡: 05-校园生活/银行卡办理/工商银行Visa卡.md
+    - 其他实用信息: 05-校园生活/其他实用信息.md
+  - 贡献指南: 贡献指南.md

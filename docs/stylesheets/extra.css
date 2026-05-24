@@ -1,0 +1,311 @@
+/* ============================================================
+   北印信安生存手册 · Midnight Violet 设计系统
+   灵感来源：uiverse.io / 00Kubi 3D Card
+   配色：靛蓝 #6366F1 × 青色 #06B6D4 × 紫罗兰 #8B5CF6
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@700;900&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+/* ══ 亮色模式词典 ══ */
+[data-md-color-scheme="default"] {
+  --c-bg:       #F7F8FF;
+  --c-surface:  #FFFFFF;
+  --c-border:   rgba(99,102,241,0.16);
+  --c-text:     #1E1B4B;
+  --c-muted:    #6B7280;
+  --c-a1:       #6366F1;
+  --c-a2:       #06B6D4;
+  --c-a3:       #8B5CF6;
+  --c-glow:     rgba(99,102,241,0.22);
+  --c-orb1:     rgba(99,102,241,0.14);
+  --c-orb2:     rgba(6,182,212,0.10);
+  --c-orb3:     rgba(139,92,246,0.12);
+  --c-grad:     linear-gradient(135deg,#6366F1,#06B6D4,#8B5CF6);
+
+  --md-primary-fg-color:           #6366F1;
+  --md-primary-fg-color--light:    #818CF8;
+  --md-primary-fg-color--dark:     #4F46E5;
+  --md-accent-fg-color:            #06B6D4;
+  --md-default-bg-color:           var(--c-bg);
+  --md-default-fg-color:           var(--c-text);
+  --md-default-fg-color--light:    #6B7280;
+  --md-default-fg-color--lighter:  #9CA3AF;
+  --md-default-fg-color--lightest: rgba(99,102,241,0.08);
+  --md-typeset-color:              var(--c-text);
+  --md-code-bg-color:              #EEF0FF;
+}
+
+/* ══ 深色模式词典 ══ */
+[data-md-color-scheme="slate"] {
+  --c-bg:       #09090F;
+  --c-surface:  rgba(129,140,248,0.04);
+  --c-border:   rgba(129,140,248,0.14);
+  --c-text:     #E2E4F6;
+  --c-muted:    #9CA3AF;
+  --c-a1:       #818CF8;
+  --c-a2:       #22D3EE;
+  --c-a3:       #A78BFA;
+  --c-glow:     rgba(129,140,248,0.28);
+  --c-orb1:     rgba(129,140,248,0.10);
+  --c-orb2:     rgba(34,211,238,0.07);
+  --c-orb3:     rgba(167,139,250,0.09);
+  --c-grad:     linear-gradient(135deg,#818CF8,#22D3EE,#A78BFA);
+
+  --md-primary-fg-color:           #818CF8;
+  --md-primary-fg-color--light:    #A5B4FC;
+  --md-primary-fg-color--dark:     #6366F1;
+  --md-accent-fg-color:            #22D3EE;
+  --md-default-bg-color:           var(--c-bg);
+  --md-default-fg-color:           var(--c-text);
+  --md-default-fg-color--light:    #9CA3AF;
+  --md-default-fg-color--lighter:  #6B7280;
+  --md-default-fg-color--lightest: rgba(129,140,248,0.07);
+  --md-typeset-color:              var(--c-text);
+  --md-code-bg-color:              #0E0E1A;
+}
+
+/* ══ 全局字体 ══ */
+.md-typeset,
+.md-nav__item,
+.md-search__input {
+  font-family: 'Noto Sans SC','PingFang SC','Microsoft YaHei',sans-serif;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  font-family: 'Noto Serif SC','SimSun',serif;
+  font-weight: 900;
+}
+
+code, kbd, pre,
+.md-typeset code,
+.md-typeset pre {
+  font-family: 'Courier Prime','Courier New',monospace !important;
+}
+
+/* ══ 文章标题渐变 ══ */
+.md-typeset h1 {
+  background: var(--c-grad);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+}
+
+/* ════════════════════════════════════════
+   首页 Hero — Aurora 浮光球 + 渐变大标题
+════════════════════════════════════════ */
+.hero-section {
+  position: relative;
+  padding: 3.5rem 0 2.5rem;
+  overflow: hidden;
+  text-align: center;
+}
+
+/* 浮光球（模糊光晕，纯 CSS 动画） */
+.hero-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(72px);
+  pointer-events: none;
+}
+.orb-1 {
+  width: 380px; height: 380px;
+  background: var(--c-orb1);
+  top: -100px; left: -80px;
+  animation: orbDrift 9s ease-in-out infinite;
+}
+.orb-2 {
+  width: 300px; height: 300px;
+  background: var(--c-orb2);
+  top: -40px; right: -60px;
+  animation: orbDrift 11s ease-in-out infinite reverse;
+}
+.orb-3 {
+  width: 220px; height: 220px;
+  background: var(--c-orb3);
+  bottom: -20px; left: 42%;
+  animation: orbDrift 7s ease-in-out infinite;
+  animation-delay: -4s;
+}
+
+@keyframes orbDrift {
+  0%,100% { transform: translate(0,0) scale(1);        }
+  30%      { transform: translate(24px,-18px) scale(1.07); }
+  70%      { transform: translate(-16px,12px) scale(0.93); }
+}
+
+/* 期号行 */
+.hero-kicker {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--c-muted);
+  margin-bottom: 1.4rem;
+  position: relative;
+}
+
+/* 主标题 — 流动渐变 */
+.hero-title {
+  font-family: 'Noto Serif SC', serif;
+  font-weight: 900;
+  font-size: clamp(2.6rem, 8vw, 5rem);
+  line-height: 1.1;
+  letter-spacing: 0.12em;
+  margin: 0 0 1rem;
+  background: var(--c-grad);
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: gradFlow 7s ease infinite;
+  position: relative;
+}
+
+@keyframes gradFlow {
+  0%   { background-position: 0%   50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0%   50%; }
+}
+
+/* 副标题 */
+.hero-sub {
+  font-size: 0.92rem;
+  color: var(--c-muted);
+  margin-bottom: 1.8rem;
+  position: relative;
+  font-family: 'Courier Prime', monospace;
+  letter-spacing: 0.04em;
+}
+
+/* 标签胶囊 */
+.hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
+  position: relative;
+}
+
+.htag {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: var(--c-grad);
+  color: #fff;
+  -webkit-text-fill-color: #fff;
+  opacity: 0.82;
+  transition: opacity 0.2s, transform 0.2s;
+  cursor: default;
+}
+.htag:hover { opacity: 1; transform: translateY(-2px); }
+
+.htag.outline {
+  background: transparent;
+  border: 1.5px solid var(--c-a1);
+  color: var(--c-a1);
+  -webkit-text-fill-color: var(--c-a1);
+  opacity: 0.7;
+}
+[data-md-color-scheme="slate"] .htag.outline {
+  -webkit-text-fill-color: var(--c-a1);
+}
+
+/* ════════════════════════════════════════
+   章节卡片 — 渐变描边 + 浮起光晕
+   原理：box-shadow 多层叠加模拟渐变边框
+════════════════════════════════════════ */
+.md-typeset .grid.cards > ul { gap: 1rem; }
+
+.md-typeset .grid.cards > ul > li {
+  border-radius: 14px !important;
+  border: 1px solid var(--c-border) !important;
+  background: var(--c-surface) !important;
+  box-shadow: none !important;
+  transition:
+    transform        0.30s cubic-bezier(0.34,1.56,0.64,1),
+    box-shadow       0.30s ease,
+    border-color     0.30s ease !important;
+  position: relative !important;
+}
+
+.md-typeset .grid.cards > ul > li:hover {
+  transform:    translateY(-7px) !important;
+  border-color: transparent !important;
+  box-shadow:
+    0 0 0 1.5px var(--c-a1),
+    0 0 0 3px   var(--c-a2),
+    0 20px 56px  var(--c-glow) !important;
+}
+
+/* 扫描线效果（hover 时从卡片顶部滑过） */
+.md-typeset .grid.cards > ul > li::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(99,102,241,0.06) 50%,
+    transparent
+  );
+  transform: translateY(-100%);
+  transition: none;
+  pointer-events: none;
+}
+.md-typeset .grid.cards > ul > li:hover::after {
+  animation: scanCard 0.6s ease forwards;
+}
+
+@keyframes scanCard {
+  from { transform: translateY(-100%); }
+  to   { transform: translateY(100%);  }
+}
+
+/* ════════════════════════════════════════
+   快速导航 Tabs
+════════════════════════════════════════ */
+.md-typeset .tabbed-labels > label {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ════════════════════════════════════════
+   贡献区块
+════════════════════════════════════════ */
+.contribute-box {
+  border-radius: 12px;
+  border: 1px solid var(--c-border);
+  border-left: 4px solid var(--c-a1);
+  background: var(--c-surface);
+  padding: 1.4rem 1.6rem;
+  margin-top: 2.4rem;
+}
+
+/* ════════════════════════════════════════
+   提示块 & 代码块
+════════════════════════════════════════ */
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: 8px;
+  border-left-width: 3px;
+}
+.md-typeset pre {
+  border-radius: 8px;
+}
+
+/* ════════════════════════════════════════
+   页脚
+════════════════════════════════════════ */
+.md-footer-meta {
+  font-family: 'Courier Prime', monospace;
+  font-size: 0.78rem;
+}
