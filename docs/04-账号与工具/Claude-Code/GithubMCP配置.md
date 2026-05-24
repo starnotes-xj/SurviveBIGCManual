@@ -11,7 +11,7 @@ claude mcp add --transport http github https://api.githubcopilot.com/mcp \
 
 ## 生成 GitHub Token
 
-1. 访问 [![GitHub Tokens](https://img.shields.io/badge/GitHub-Personal_Access_Tokens-181717?style=flat-square&logo=github&logoColor=white)](https://github.com/settings/tokens)
+1. 访问 [![GitHub Tokens](https://img.shields.io/badge/GitHub-Personal_Access_Tokens-181717?style=flat&logo=github&logoColor=white)](https://github.com/settings/tokens)
 2. 点击 **Generate new token (classic)**
 3. 勾选所需权限（`repo`、`read:org` 等）
 4. 生成后复制，替换上方命令中的 `YOUR_GITHUB_TOKEN`

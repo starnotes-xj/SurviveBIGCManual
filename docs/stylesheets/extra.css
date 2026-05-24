@@ -463,6 +463,81 @@ body::after {
 }
 
 /* ════════════════════════════════════════
+   表格 — 居中 + CIPHER NOIR 终端风格
+════════════════════════════════════════ */
+
+/* 外层滚动容器居中 */
+.md-typeset__scrollwrap {
+  text-align: center;
+}
+
+/* 表格本体：收缩到内容宽度、水平居中 */
+.md-typeset table {
+  display: inline-table;
+  width: auto;
+  min-width: 55%;
+  max-width: 100%;
+  text-align: left;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid var(--c-border);
+  border-radius: 10px;
+  overflow: hidden;
+  font-size: 0.88rem;
+}
+
+/* 表头渐变 */
+.md-typeset table thead tr {
+  background: var(--c-grad);
+}
+
+.md-typeset table th {
+  font-family: 'JetBrains Mono', monospace !important;
+  font-weight: 700;
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff !important;
+  -webkit-text-fill-color: #fff !important;
+  padding: 0.72rem 1.1rem;
+  border: none;
+  white-space: nowrap;
+}
+
+/* 数据单元格 */
+.md-typeset table td {
+  padding: 0.60rem 1.1rem;
+  border-top: 1px solid var(--c-border);
+  border-bottom: none;
+  vertical-align: middle;
+}
+
+/* 斑马条纹 */
+.md-typeset table tbody tr:nth-child(even) {
+  background: var(--c-surface);
+}
+
+/* 行 hover 青色微光 */
+.md-typeset table tbody tr {
+  transition: background 0.16s ease;
+}
+.md-typeset table tbody tr:hover {
+  background: var(--c-orb1) !important;
+}
+
+/* 最后一行去掉多余分隔线 */
+.md-typeset table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* 徽标图片垂直居中 */
+.md-typeset table td img,
+.md-typeset table th img {
+  vertical-align: middle;
+  display: inline-block;
+}
+
+/* ════════════════════════════════════════
    贡献区块
 ════════════════════════════════════════ */
 .contribute-box {
