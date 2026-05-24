@@ -143,6 +143,7 @@ nav:
     - Claude Code:
       - 快速入门: 04-账号与工具/Claude-Code/快速入门.md
       - 订阅方案: 04-账号与工具/Claude-Code/订阅方案.md
+      - GBox解决Google Play问题: 04-账号与工具/Claude-Code/GBox解决部分安卓手机无法使用Google Play问题.md
       - 插件安装说明: 04-账号与工具/Claude-Code/插件安装说明.md
       - GithubMCP配置: 04-账号与工具/Claude-Code/GithubMCP配置.md
       - 自动PR代码审核: 04-账号与工具/Claude-Code/自动PR代码审核.md
