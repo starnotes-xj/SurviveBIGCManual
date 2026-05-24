@@ -2,6 +2,14 @@
 
 遇到环境问题先来这里查，大概率有现成的解决方案。
 
+## Windows 工具
+
+| 工具 | 文章 |
+|---|---|
+| Windows 效率优化 | [Win+R 快速启动、C 盘清理等](Windows常见问题/Windows效率优化.md) |
+| 普通摄像头人脸识别解锁 | [FaceWinUnlock-Tauri](Windows常见问题/人脸识别解锁.md) |
+| 添加环境变量 PATH | [添加环境变量PATH](Windows常见问题/添加环境变量PATH.md) |
+
 ## 开发环境
 
 | 工具 | 文章 |

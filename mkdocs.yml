@@ -104,28 +104,25 @@ nav:
     - 必备工具清单: 01-入门/必备工具清单.md
   - 技术方向:
     - 02-技术方向/index.md
+    - ACM竞赛: 02-技术方向/ACM竞赛.md
     - CTF竞技:
       - CTF是什么: 02-技术方向/CTF竞技/CTF是什么.md
       - 学习资源: 02-技术方向/CTF竞技/学习资源.md
-      - 平台使用: 02-技术方向/CTF竞技/平台使用.md
-      - Cherry Lab题解: 02-技术方向/CTF竞技/Cherry-Lab题解.md
-      - USB Hacker题解: 02-技术方向/CTF竞技/USB-Hacker题解.md
+      - 战队 Writeup: 02-技术方向/CTF竞技/Writeup.md
+      - Shellcode Executor: 02-技术方向/CTF竞技/ShellcodeExecutor.md
     - 环境搭建:
+      - VMware Workstation Pro 安装: 02-技术方向/环境搭建/VMware安装.md
       - Kali安装（VMware）: 02-技术方向/环境搭建/Kali安装（VMware）.md
       - Kali安装中文输入法: 02-技术方向/环境搭建/Kali安装Fcitx5输入法.md
       - GZCTF部署: 02-技术方向/环境搭建/GZCTF部署.md
     - 开发技能:
-      - SpringAI: 02-技术方向/开发技能/SpringAI.md
-      - SpringBoot工具类: 02-技术方向/开发技能/SpringBoot工具类.md
       - 正则表达式: 02-技术方向/开发技能/正则表达式.md
-      - 函数式编程: 02-技术方向/开发技能/函数式编程.md
-      - 微信小程序通知推送: 02-技术方向/开发技能/微信小程序通知推送.md
-      - 线索二叉树: 02-技术方向/开发技能/线索二叉树.md
   - 工具与问题:
     - 03-工具与问题/index.md
     - Windows常见问题:
       - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
       - Windows效率优化: 03-工具与问题/Windows常见问题/Windows效率优化.md
+      - 人脸识别解锁: 03-工具与问题/Windows常见问题/人脸识别解锁.md
     - 开发环境:
       - CLion配置: 03-工具与问题/开发环境/CLion配置.md
       - Rebased Git客户端: 03-工具与问题/开发环境/Rebased.md
@@ -140,16 +137,18 @@ nav:
       - 如何提交PR: 04-账号与工具/GitHub注册与使用/提交PR.md
     - Google账号:
       - 注册与常见问题: 04-账号与工具/Google账号/注册与常见问题.md
+      - GBox（安卓 Google Play）: 04-账号与工具/Claude-Code/GBox解决部分安卓手机无法使用Google Play问题.md
     - JetBrains:
       - 许可证申请: 04-账号与工具/JetBrains/许可证申请.md
     - Notion:
       - 注册与入门: 04-账号与工具/Notion/注册与入门.md
       - 教育优惠申请: 04-账号与工具/Notion/教育优惠申请.md
-    - ChatGPT:
-      - 订阅方案: 04-账号与工具/ChatGPT/订阅方案.md
+    - ChatGPT & Codex: 04-账号与工具/ChatGPT/订阅方案.md
     - Claude Code:
       - 快速入门: 04-账号与工具/Claude-Code/快速入门.md
       - 订阅方案: 04-账号与工具/Claude-Code/订阅方案.md
+      - 用 Codex 订阅驱动 Claude Code: 04-账号与工具/Claude-Code/Codex订阅转Claude.md
+      - 用 Copilot 订阅驱动 Claude Code: 04-账号与工具/Claude-Code/Copilot订阅转Claude.md
       - Cowork RPC修复: 04-账号与工具/Claude-Code/Cowork-RPC修复.md
       - 插件安装说明: 04-账号与工具/Claude-Code/插件安装说明.md
       - GithubMCP配置: 04-账号与工具/Claude-Code/GithubMCP配置.md

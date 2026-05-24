@@ -9,7 +9,7 @@ hide:
   <div class="hero-orb orb-2"></div>
   <div class="hero-orb orb-3"></div>
 
-  <p class="hero-kicker">北京印刷学院 · 信息安全专业 · Vol.01 · 2025年版</p>
+  <p class="hero-kicker">北京印刷学院 · 信息安全专业 · Vol.01 · 2026年版</p>
 
   <p class="hero-title">信 息 安 全<br>生 存 手 册</p>
 
@@ -44,7 +44,7 @@ hide:
 
     ---
 
-    CTF竞技、安全环境搭建、Java/Spring开发。核心技能一网打尽。
+    ACM竞赛、CTF竞技、安全环境搭建、正则表达式。核心技能一网打尽。
 
     [:octicons-arrow-right-24: 查看技术栈](02-技术方向/index.md)
 
@@ -100,10 +100,19 @@ hide:
 
 === ":material-flag: 我想打CTF"
 
-    1. 读 [CTF是什么](02-技术方向/CTF竞技/CTF是什么.md)
-    2. 找好 [学习资源](02-技术方向/CTF竞技/学习资源.md)
-    3. 注册 [训练平台](02-技术方向/CTF竞技/平台使用.md)
-    4. 搭好 [Kali环境](02-技术方向/环境搭建/Kali安装（VMware）.md)
+    1. 读 [CTF是什么](02-技术方向/CTF竞技/CTF是什么.md)，了解方向和题型
+    2. 从 [picoCTF](https://picoctf.org/) 入门，做完基础题建立感性认识
+    3. 去 [TryHackMe](https://tryhackme.com) 按学习路径系统练习，无需配环境
+    4. 搭好 [Kali 环境](02-技术方向/环境搭建/Kali安装（VMware）.md)，准备本地工具链
+    5. 按方向选平台：Web → [ctf.show](https://ctf.show)；Pwn → [pwn.college](https://pwn.college)；综合 → [BUUCTF](https://buuoj.cn)
+    6. 参考 [战队 Writeup](02-技术方向/CTF竞技/Writeup.md) 学解题思路，去 [HackTheBox](https://www.hackthebox.com) 打实战靶机
+
+=== ":material-code-braces: 我想打ACM"
+
+    1. 读 [ACM竞赛入门](02-技术方向/ACM竞赛.md)，了解竞赛形式和路线
+    2. 先看 [北印ACM实验室快速入门](https://bigcacm.pages.dev/quickstart/) 按校内教程走
+    3. 在 [洛谷](https://www.luogu.com.cn) 刷基础题，建立算法基础
+    4. 注册 [Codeforces](https://codeforces.com)，从 rating 800 开始，每周参加 Div.2 比赛
 
 === ":material-bank: 我要办银行卡"
 
