@@ -1,6 +1,58 @@
-还能自动修复错误，优化代码
+# Claude Code 自动 PR 代码审核
+
+提交 Pull Request 时自动触发 Claude 进行代码审查，发现可修复的问题直接提交修复，其余问题以评论形式报告。也可在 PR 评论中输入 `@claude` 或 `/review` 手动触发。
+
+!!! info "当前配置针对 Go 语言项目"
+    workflow 中的审查重点和自动修复规则均面向 Go 语言（`gofmt`、错误处理、goroutine 等）。其他语言项目请参考下方「需要修改的内容」调整。
+
+---
+
+## 前置准备
+
+在 GitHub 仓库的 **Settings → Secrets and variables → Actions** 中添加以下两个 Secret：
+
+| Secret 名称 | 说明 |
+|---|---|
+| `ANTHROPIC_API_KEY` | Claude API Key，在 CC-Switch 配置的提供商处获取 |
+| `USER_TOKEN` | GitHub 个人访问令牌（PAT），需要 `repo` 和 `pull-requests: write` 权限 |
+
+GitHub PAT 的申请方式详见 [GithubMCP配置](GithubMCP配置.md)。
+
+---
+
+## 需要修改的内容
+
+### 1. API 提供商（必改）
 
 ```yaml
+env:
+  ANTHROPIC_BASE_URL: https://dashscope.aliyuncs.com/apps/anthropic  # ← 改成你的 API 端点
+  ANTHROPIC_DEFAULT_HAIKU_MODEL: qwen3-coder-plus   # ← 改成实际使用的模型名
+  ANTHROPIC_DEFAULT_OPUS_MODEL: qwen3-coder-plus
+  ANTHROPIC_DEFAULT_SONNET_MODEL: qwen3-coder-plus
+```
+
+使用 Anthropic 官方 API 时删除这整个 `env` 块，使用 `ANTHROPIC_API_KEY` 即可。
+
+### 2. 编程语言审查重点（非 Go 项目必改）
+
+prompt 中第 4 条「Go 语言最佳实践」和自动修复列表里的 `gofmt` 是 Go 专用内容，使用其他语言时替换为对应的规范，例如：
+
+- **Python**：PEP8、类型注解、异常处理、`black`/`ruff` 格式化
+- **Java**：空指针处理、资源关闭、代码风格
+- **JavaScript/TypeScript**：`eslint`、类型安全、异步错误处理
+
+### 3. 项目规范文件（按需修改）
+
+prompt 中多处引用了 `.claude/CLAUDE.md`，这是 Claude Code 的项目规范文件。如果你的项目没有该文件，删除相关引用即可。
+
+---
+
+## workflow 文件
+
+将以下内容保存为 `.github/workflows/claude-review.yml`：
+
+~~~yaml
 name: Claude Code Review & Auto Fix
 
 on:
@@ -20,13 +72,12 @@ jobs:
 
     runs-on: ubuntu-latest
     permissions:
-      contents: write      # ✨ 允许修改文件并提交
+      contents: write
       pull-requests: write
       issues: write
       id-token: write
       actions: read
     env:
-      # 配置 Aliyun DashScope Anthropic API 端点
       ANTHROPIC_BASE_URL: https://dashscope.aliyuncs.com/apps/anthropic
       ANTHROPIC_DEFAULT_HAIKU_MODEL: qwen3-coder-plus
       ANTHROPIC_DEFAULT_OPUS_MODEL: qwen3-coder-plus
@@ -115,34 +166,24 @@ jobs:
             1. 使用 Read 工具读取需要修改的文件
             2. 使用 Edit 工具进行精确修改
             3. 所有修复完成后，使用 Bash 工具创建提交：
-               ```bash
-               git add -A
-               git commit -m "🤖 Claude 自动修复: [简要说明]
 
-               基于 pr-review-toolkit 审查结果自动修复：
-               - 列出修复的问题
+            ```
+            git add -A
+            git commit -m "🤖 Claude 自动修复: [简要说明]
 
-               Co-Authored-By: Claude Code Bot <claude-code-bot@users.noreply.github.com>"
-               git push
-               ```
+            基于 pr-review-toolkit 审查结果自动修复：
+            - 列出修复的问题
+
+            Co-Authored-By: Claude Code Bot <claude-code-bot@users.noreply.github.com>"
+            git push
+            ```
 
             ### 审查报告格式
 
-            在 PR 中发布审查报告，在开头添加 Claude 标识，格式如下：
+            在 PR 中发布审查报告，格式如下：
 
-            ```markdown
-            <div align="center">
-              <img src="https://mintlify.s3-us-west-1.amazonaws.com/anthropic/logo/light.svg" alt="Claude" width="120" />
-
-              # Claude Code 审查报告
-
-              **🔮 Powered by Claude Code** | 使用 pr-review-toolkit 专业审查
-            </div>
-
-            ---
-
+            ```
             ### ✅ 已自动修复的问题
-
             - [x] 问题描述（文件:行号）
 
             ### ⚠️ 需要手动处理的问题
@@ -154,11 +195,9 @@ jobs:
             - [ ] 问题描述（文件:行号）
 
             ### 💡 优化建议
-
             - 建议描述
 
             ### 📊 总结
-
             - 检查了 X 个文件
             - 自动修复了 Y 个问题
             - 发现 Z 个需要手动处理的问题
@@ -166,12 +205,11 @@ jobs:
 
             ## 重要提示
 
-            - 所有回复使用中文，除非在当前对话中用户明确要求使用其他语言
+            - 所有回复使用中文
             - 如果没有发现需要修复的问题，只发布审查报告，不要创建空提交
             - 修复时要谨慎，确保不会破坏现有功能
-            - 使用内联评论指出具体代码位置的问题（如果适用）
 
-          # 允许的工具：读写文件、执行所有 Bash 命令、GitHub 操作、调用插件
           claude_args: |
             --allowedTools "Read,Edit,Write,Glob,Grep,Bash,mcp__github__*,Skill"
             --max-turns 100
+~~~
