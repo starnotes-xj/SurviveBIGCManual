@@ -111,9 +111,9 @@ Remove-Item "$env:TEMP\*" -Recurse -Force -ErrorAction SilentlyContinue
 
 1. 下载 Skill 文件包（三个文件）：
 
-    [![SKILL.md](https://img.shields.io/badge/下载-SKILL.md-181717?style=flat&logo=github&logoColor=white)](https://github.com/starnotes-xj/SurviveBIGCManual/raw/main/tools/clean-c-drive/SKILL.md)
-    [![scan.ps1](https://img.shields.io/badge/下载-scan.ps1-181717?style=flat&logo=github&logoColor=white)](https://github.com/starnotes-xj/SurviveBIGCManual/raw/main/tools/clean-c-drive/scripts/scan.ps1)
-    [![clean.ps1](https://img.shields.io/badge/下载-clean.ps1-181717?style=flat&logo=github&logoColor=white)](https://github.com/starnotes-xj/SurviveBIGCManual/raw/main/tools/clean-c-drive/scripts/clean.ps1)
+    [![SKILL.md](https://img.shields.io/badge/下载-SKILL.md-181717?style=plastic&logo=github&logoColor=white)](https://github.com/starnotes-xj/SurviveBIGCManual/raw/main/tools/clean-c-drive/SKILL.md)
+    [![scan.ps1](https://img.shields.io/badge/下载-scan.ps1-181717?style=plastic&logo=github&logoColor=white)](https://github.com/starnotes-xj/SurviveBIGCManual/raw/main/tools/clean-c-drive/scripts/scan.ps1)
+    [![clean.ps1](https://img.shields.io/badge/下载-clean.ps1-181717?style=plastic&logo=github&logoColor=white)](https://github.com/starnotes-xj/SurviveBIGCManual/raw/main/tools/clean-c-drive/scripts/clean.ps1)
 
 2. 按以下结构放置文件：
 
