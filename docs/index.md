@@ -52,7 +52,7 @@ hide:
 
     ---
 
-    Linux常见坑、IDE配置、环境问题。遇到问题先来这里找答案。
+    Windows效率优化、CLion配置、环境问题。遇到问题先来这里找答案。
 
     [:octicons-arrow-right-24: 查找解决方案](03-工具与问题/index.md)
 
@@ -113,6 +113,8 @@ hide:
 === ":material-robot: 我想用AI工具"
 
     - [Claude Code 快速入门](04-账号与工具/Claude-Code/快速入门.md) — AI 编程助手，写代码做CTF都好用
+    - [Claude Code 订阅方案](04-账号与工具/Claude-Code/订阅方案.md) — Pro / Max 方案对比，如何用 Visa 卡订阅
+    - [Cowork RPC 报错修复](04-账号与工具/Claude-Code/Cowork-RPC修复.md) — Cowork 标签页白屏 / RPC pipe closed 解决方案
     - [Notion 注册与入门](04-账号与工具/Notion/注册与入门.md) — 笔记、数据库、项目管理一体化
 
 ---
