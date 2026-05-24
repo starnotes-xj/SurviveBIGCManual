@@ -8,11 +8,7 @@
 
 === "Windows（推荐）"
 
-    ```powershell
-    winget install detachhead.rebased --source winget
-    ```
-
-    或从 [GitHub Releases](https://github.com/DetachHead/rebased/releases/latest) 下载 `rebased.exe` 安装包。
+    从 [GitHub Releases](https://github.com/DetachHead/rebased/releases/latest) 下载 `rebased.exe` 安装包，双击安装即可。
 
 === "macOS"
 
