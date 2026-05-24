@@ -7,6 +7,7 @@ copyright: Copyright &copy; 2025 北印信息安全专业同学共同维护 · M
 theme:
   name: material
   language: zh
+  custom_dir: docs/overrides
   font:
     text: Noto Sans SC
     code: Courier Prime
@@ -112,6 +113,8 @@ nav:
       - 线索二叉树: 02-技术方向/开发技能/线索二叉树.md
   - 工具与问题:
     - 03-工具与问题/index.md
+    - Windows常见问题:
+      - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
     - Linux常见问题:
       - 双击无法运行应用: 03-工具与问题/Linux常见问题/双击无法运行应用.md
       - Ubuntu root登录: 03-工具与问题/Linux常见问题/Ubuntu-root登录.md
@@ -139,6 +142,7 @@ nav:
       - 教育优惠申请: 04-账号与工具/Notion/教育优惠申请.md
     - Claude Code:
       - 快速入门: 04-账号与工具/Claude-Code/快速入门.md
+      - 订阅方案: 04-账号与工具/Claude-Code/订阅方案.md
       - 插件安装说明: 04-账号与工具/Claude-Code/插件安装说明.md
       - GithubMCP配置: 04-账号与工具/Claude-Code/GithubMCP配置.md
       - 自动PR代码审核: 04-账号与工具/Claude-Code/自动PR代码审核.md
