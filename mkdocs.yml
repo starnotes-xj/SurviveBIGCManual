@@ -76,7 +76,13 @@ markdown_extensions:
   - pymdownx.emoji:
       emoji_index: !!python/name:material.extensions.emoji.twemoji
       emoji_generator: !!python/name:material.extensions.emoji.to_svg
-  - pymdownx.keys
+  - pymdownx.keys:
+      key_map:
+        control: "Ctrl"
+        win: "Win"
+        cmd: "Cmd"
+        alt: "Alt"
+        shift: "Shift"
   - pymdownx.tasklist:
       custom_checkbox: true
   - attr_list
