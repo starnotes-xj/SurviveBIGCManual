@@ -88,7 +88,7 @@ PR 提交后，仓库维护者会收到通知，审核你的改动：
 
 本手册仓库地址：[github.com/starnotes-xj/SurviveBIGCManual](https://github.com/starnotes-xj/SurviveBIGCManual)
 
-文档文件全部在 `docs/` 目录下，Markdown 格式，直接在网页编辑器里改就行，不需要本地搭建环境。详细规范见 [贡献指南](../../../贡献指南)。
+文档文件全部在 `docs/` 目录下，Markdown 格式，直接在网页编辑器里改就行，不需要本地搭建环境。详细规范见 [贡献指南](../../贡献指南.md)。
 
 !!! tip "第一次提 PR 不要怕"
     PR 不会直接生效，维护者审核后才会合并。改错了也没关系，只会影响你自己的 Fork，不会破坏原仓库。
