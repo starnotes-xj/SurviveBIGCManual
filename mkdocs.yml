@@ -7,7 +7,6 @@ copyright: Copyright &copy; 2025 北印信息安全专业同学共同维护 · M
 theme:
   name: material
   language: zh
-  custom_dir: docs/overrides
   font:
     text: Noto Sans SC
     code: Courier Prime
