@@ -1,33 +1,57 @@
-# Clion配置
+# CLion 配置
 
-地区别选中国就行，可以选择未指定，或者亚洲(中国除外)
+CLion 是 JetBrains 出品的 C/C++ IDE，学生可免费申请授权，详见 [JetBrains 许可证申请](../../04-账号与工具/JetBrains/许可证申请.md)。
 
-![image-20251014130900860](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014130900860.png)
+以下配置的目标是：**同一个项目目录下可以有多个 `.c` 文件，每个文件都能独立右键运行**，不需要 CMake 手动管理。
 
-点击新建项目，项目建立好之后如下图所示，点击确定即可
+---
 
-![image-20251014131053263](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131053263.png)
+## 第一步：新建项目
 
-## 第二步
+打开 CLion，首次启动时选择地区，**不要选中国**，可以选「未指定」或「亚洲（中国除外）」，否则可能影响部分功能。
 
-### **删除CMakeLists.txt**即可
+![地区选择](assets/image-20251014130900860.png)
 
-## 第三步
+点击「新建项目」，建立好之后如下图所示，点击「确定」。
 
-### 添加配置，更改默认模板配置
+![新建项目](assets/image-20251014131053263.png)
 
-![image-20251014131330065](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131330065.png)
+---
 
-![image-20251014131349311](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131349311.png)
+## 第二步：删除 CMakeLists.txt
 
-![image-20251014131512599](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131512599.png)
+项目建立后，删除根目录下的 **`CMakeLists.txt`** 文件。
 
-![image-20251014131543457](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131543457.png)
+---
 
-![image-20251014131627877](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131627877.png)
+## 第三步：添加运行配置
 
-即可右键运行程序，在同一目录下也可以有多个main函数。在左边的项目结构中右键即可新建
+依次按照以下步骤添加配置，使每个 `.c` 文件都能独立运行。
 
-![image-20251014131641634](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131641634.png)
+点击右上角配置下拉框，选择「编辑配置」：
 
-![image-20251014131804883](C:\Users\星记\AppData\Roaming\Typora\typora-user-images\image-20251014131804883.png)
+![编辑配置入口](assets/image-20251014131330065.png)
+
+点击左上角 `+` 新增配置：
+
+![新增配置](assets/image-20251014131349311.png)
+
+按下图填写配置内容：
+
+![配置填写](assets/image-20251014131512599.png)
+
+![配置详情](assets/image-20251014131543457.png)
+
+![完成配置](assets/image-20251014131627877.png)
+
+---
+
+## 使用方法
+
+配置完成后，在左侧项目目录中右键 `.c` 文件即可直接运行，同一目录下可以同时存在多个含 `main` 函数的文件互不干扰。
+
+![右键运行](assets/image-20251014131641634.png)
+
+右键菜单中也可以新建文件：
+
+![新建文件](assets/image-20251014131804883.png)
