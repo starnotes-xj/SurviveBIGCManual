@@ -60,7 +60,7 @@ fcitx5-configtool
 3. 搜索并添加 `Pinyin`
 4. 保留一个英文键盘（如 `Keyboard - English (US)`）
 
-之后按 ++ctrl+space++ 切换中英文输入，出现候选词窗口即表示成功。
+之后按 ++control+space++ 切换中英文输入，出现候选词窗口即表示成功。
 
 ---
 
