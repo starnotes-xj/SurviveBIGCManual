@@ -117,6 +117,7 @@ nav:
       - Windows效率优化: 03-工具与问题/Windows常见问题/Windows效率优化.md
     - 开发环境:
       - CLion配置: 03-工具与问题/开发环境/CLion配置.md
+      - Rebased Git客户端: 03-工具与问题/开发环境/Rebased.md
   - 账号与工具:
     - 04-账号与工具/index.md
     - 梯子获取: 04-账号与工具/梯子获取.md
