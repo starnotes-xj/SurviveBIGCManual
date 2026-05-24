@@ -90,12 +90,13 @@ hide:
 
     **第一周必做清单：**
 
-    1. :material-vpn: 先搞定 [梯子](04-账号与工具/梯子获取.md)，这是一切的前提
-    2. :material-github: 注册 [GitHub 账号](04-账号与工具/GitHub注册与使用/注册与配置.md)
-    3. :material-google: 注册 [Google 账号](04-账号与工具/Google账号/注册与常见问题.md)
-    4. :material-email-check: 申请 [学校教育邮箱](04-账号与工具/教育邮箱申请.md)，换取大量免费工具
-    5. :material-school: 读 [专业介绍](01-入门/专业介绍.md) 了解未来四年方向
-    6. :material-map: 按 [学习路径](01-入门/学习路径.md) 制定计划
+    1. :material-bank: 去黄村分行办 [北京银行卡](05-校园生活/银行卡办理/北京银行卡.md)，奖学金、饭补都靠它
+    2. :material-vpn: 搞定 [梯子](04-账号与工具/梯子获取.md)，这是一切的前提
+    3. :material-github: 注册 [GitHub 账号](04-账号与工具/GitHub注册与使用/注册与配置.md)
+    4. :material-google: 注册 [Google 账号](04-账号与工具/Google账号/注册与常见问题.md)
+    5. :material-email-check: 申请 [学校教育邮箱](04-账号与工具/教育邮箱申请.md)，换取大量免费工具
+    6. :material-school: 读 [专业介绍](01-入门/专业介绍.md) 了解未来四年方向
+    7. :material-map: 按 [学习路径](01-入门/学习路径.md) 制定计划
 
 === ":material-flag: 我想打CTF"
 
@@ -106,7 +107,7 @@ hide:
 
 === ":material-bank: 我要办银行卡"
 
-    - [北京银行卡](05-校园生活/银行卡办理/北京银行卡.md) — 日常消费、微信支付宝绑定
+    - [北京银行卡](05-校园生活/银行卡办理/北京银行卡.md) — **必须办**，学校发放奖学金、饭补均通过北京银行
     - [工商银行Visa卡](05-校园生活/银行卡办理/工商银行Visa卡.md) — 订阅 ChatGPT/Claude、境外支付
 
 === ":material-robot: 我想用AI工具"
