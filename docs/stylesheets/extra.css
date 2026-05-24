@@ -303,6 +303,19 @@ code, kbd, pre,
 }
 
 /* ════════════════════════════════════════
+   键帽快捷键 — 移除 Material 主题对修饰键的符号前缀
+   （主题默认用 ::before 给 Ctrl/Alt/Shift/Win 加 ^/⌥/⇧/⊞）
+════════════════════════════════════════ */
+.md-typeset .keys .key-control::before,
+.md-typeset .keys .key-alt::before,
+.md-typeset .keys .key-shift::before,
+.md-typeset .keys .key-super::before,
+.md-typeset .keys .key-win::before,
+.md-typeset .keys .key-cmd::before {
+  content: none !important;
+}
+
+/* ════════════════════════════════════════
    页脚
 ════════════════════════════════════════ */
 .md-footer-meta {
