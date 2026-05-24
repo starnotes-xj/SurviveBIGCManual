@@ -114,6 +114,7 @@ nav:
     - 03-工具与问题/index.md
     - Windows常见问题:
       - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
+      - Windows效率优化: 03-工具与问题/Windows常见问题/Windows效率优化.md
     - Linux常见问题:
       - 双击无法运行应用: 03-工具与问题/Linux常见问题/双击无法运行应用.md
       - Ubuntu root登录: 03-工具与问题/Linux常见问题/Ubuntu-root登录.md
