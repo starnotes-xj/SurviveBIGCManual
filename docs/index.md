@@ -44,7 +44,7 @@ hide:
 
     ---
 
-    ACM竞赛、CTF竞技、安全环境搭建、正则表达式。核心技能一网打尽。
+    ACM竞赛、CTF竞技、智能车实验室、安全环境搭建。核心技能一网打尽。
 
     [:octicons-arrow-right-24: 查看技术栈](02-技术方向/index.md)
 
@@ -113,6 +113,12 @@ hide:
     2. 先看 [北印ACM实验室快速入门](https://bigcacm.pages.dev/quickstart/) 按校内教程走
     3. 在 [洛谷](https://www.luogu.com.cn) 刷基础题，建立算法基础
     4. 注册 [Codeforces](https://codeforces.com)，从 rating 800 开始，每周参加 Div.2 比赛
+
+=== ":material-car-sports: 智能车实验室"
+
+    BIGC 金楠石战队（原北印智能车队）— 校内智能车科创核心技术平台。
+
+    - [战队介绍与竞赛成绩](02-技术方向/智能车实验室.md) — 全国大学生智能汽车竞赛、华北五省机器人大赛、毕昇杯
 
 === ":material-bank: 我要办银行卡"
 
