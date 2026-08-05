@@ -405,7 +405,7 @@
 
   /* ═══════════════════════════════════════════════════════
      8. 页脚访问统计 — iCount
-        纯静态站点没有后端，使用 iCount 记录今日/总 PV。
+        纯静态站点没有后端，使用 iCount 提供的 UV 统计今日/总访客。
         本地预览不加载统计脚本，避免把开发访问计入线上数据。
   ═══════════════════════════════════════════════════════ */
   function initVisitorStats() {
@@ -424,9 +424,9 @@
     stats.setAttribute('aria-live', 'polite');
     stats.innerHTML = `
       <span class="cn-visitor-stats__label">TRAFFIC</span>
-      <span>今日 <strong data-stat="today">—</strong></span>
+      <span>今日访客 <strong data-stat="today">—</strong></span>
       <span class="cn-visitor-stats__separator">·</span>
-      <span>总访问 <strong data-stat="total">—</strong></span>
+      <span>总访客 <strong data-stat="total">—</strong></span>
     `;
     footer.appendChild(stats);
 
@@ -443,8 +443,8 @@
     }
 
     function render(data) {
-      const today = Number(data?.today?.pv);
-      const total = Number(data?.total?.pv);
+      const today = Number(data?.today?.uv);
+      const total = Number(data?.total?.uv);
       if (Number.isFinite(today)) values.today.textContent = today.toLocaleString('zh-CN');
       if (Number.isFinite(total)) values.total.textContent = total.toLocaleString('zh-CN');
       stats.classList.add('cn-visitor-stats--ready');
