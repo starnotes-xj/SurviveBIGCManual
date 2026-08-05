@@ -622,6 +622,53 @@ body::after {
   opacity: 0.62;
 }
 
+/* ══ 访问统计（JS 注入） ══ */
+.cn-visitor-stats {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-left: 1.2rem;
+  color: rgba(255, 255, 255, 0.70);
+  white-space: nowrap;
+}
+
+.cn-visitor-stats__label {
+  color: #79e8ff;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.cn-visitor-stats strong {
+  color: #72ffc4;
+  font-weight: 700;
+}
+
+.cn-visitor-stats__separator {
+  color: #79e8ff;
+  opacity: 0.7;
+}
+
+.cn-visitor-stats:not(.cn-visitor-stats--ready) {
+  opacity: 0.7;
+}
+
+.cn-visitor-stats--local {
+  opacity: 0.5;
+}
+
+.cn-visitor-stats--unavailable {
+  display: none;
+}
+
+@media screen and (max-width: 700px) {
+  .cn-visitor-stats {
+    width: 100%;
+    margin: 0.6rem 0 0;
+  }
+}
+
 /* ════════════════════════════════════════
    主题切换开关 — UIverse Galahhad
 ════════════════════════════════════════ */

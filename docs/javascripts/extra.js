@@ -6,6 +6,7 @@
    ─ 主标题 Glitch 动画周期触发
    ─ 滚动揭示（IntersectionObserver）
    ─ 代码块终端语言标签
+   ─ 页脚访问统计（iCount）
    MkDocs Material SPA 兼容：订阅 document$ Observable
    ============================================================ */
 
@@ -403,6 +404,95 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     8. 页脚访问统计 — iCount
+        纯静态站点没有后端，使用 iCount 记录今日/总 PV。
+        本地预览不加载统计脚本，避免把开发访问计入线上数据。
+  ═══════════════════════════════════════════════════════ */
+  function initVisitorStats() {
+    const footer = document.querySelector('.md-footer-meta__inner')
+      || document.querySelector('.md-footer-meta');
+    const hostname = window.location.hostname;
+    const isLocal = /^(localhost|127(?:\.\d+){3}|0\.0\.0\.0|::1)$/.test(hostname);
+
+    if (!footer || !hostname) return null;
+
+    document.querySelector('.cn-visitor-stats')?.remove();
+
+    const stats = document.createElement('div');
+    stats.className = 'cn-visitor-stats';
+    stats.setAttribute('aria-label', '网站访问统计');
+    stats.setAttribute('aria-live', 'polite');
+    stats.innerHTML = `
+      <span class="cn-visitor-stats__label">TRAFFIC</span>
+      <span>今日 <strong data-stat="today">—</strong></span>
+      <span class="cn-visitor-stats__separator">·</span>
+      <span>总访问 <strong data-stat="total">—</strong></span>
+    `;
+    footer.appendChild(stats);
+
+    const values = {
+      today: stats.querySelector('[data-stat="today"]'),
+      total: stats.querySelector('[data-stat="total"]'),
+    };
+    let pollId = 0;
+    let timeoutId = 0;
+
+    if (isLocal) {
+      stats.classList.add('cn-visitor-stats--local');
+      return () => stats.remove();
+    }
+
+    function render(data) {
+      const today = Number(data?.today?.pv);
+      const total = Number(data?.total?.pv);
+      if (Number.isFinite(today)) values.today.textContent = today.toLocaleString('zh-CN');
+      if (Number.isFinite(total)) values.total.textContent = total.toLocaleString('zh-CN');
+      stats.classList.add('cn-visitor-stats--ready');
+    }
+
+    function markUnavailable() {
+      stats.classList.add('cn-visitor-stats--unavailable');
+      stats.setAttribute('aria-label', '网站访问统计暂时不可用');
+    }
+
+    function connect() {
+      if (window.iCount && typeof window.iCount.getStats === 'function') {
+        window.iCount.getStats(render);
+        return;
+      }
+
+      let tracker = document.querySelector('script[data-cn-icount]');
+      if (!tracker) {
+        tracker = document.createElement('script');
+        tracker.async = true;
+        tracker.dataset.cnIcount = hostname;
+        tracker.src = `https://icount.kr/c.js?id=${encodeURIComponent(hostname)}`;
+        tracker.addEventListener('error', markUnavailable, { once: true });
+        document.head.appendChild(tracker);
+      }
+
+      pollId = window.setInterval(() => {
+        if (!window.iCount || typeof window.iCount.getStats !== 'function') return;
+        window.clearInterval(pollId);
+        window.clearTimeout(timeoutId);
+        window.iCount.getStats(render);
+      }, 50);
+      timeoutId = window.setTimeout(() => {
+        window.clearInterval(pollId);
+        markUnavailable();
+      }, 10000);
+    }
+
+    connect();
+
+    return () => {
+      window.clearInterval(pollId);
+      window.clearTimeout(timeoutId);
+      stats.remove();
+    };
+  }
+
+  /* ═══════════════════════════════════════════════════════
      主入口 — MkDocs Material SPA 兼容
      document$ 是 Material 注入的 RxJS Observable，
      每次 SPA 导航后发射新文档；不存在则降级到 DOMContentLoaded
@@ -420,6 +510,7 @@
       const c3 = initGlitch();
       const c4 = initReveal();
       const c5 = initThemeSwitch();
+      const c6 = initVisitorStats();
       initCorners();
       initCodeLabels();
       if (c1) cleanups.push(c1);
@@ -427,6 +518,7 @@
       if (c3) cleanups.push(c3);
       if (c4) cleanups.push(c4);
       if (c5) cleanups.push(c5);
+      if (c6) cleanups.push(c6);
     });
   }
 
