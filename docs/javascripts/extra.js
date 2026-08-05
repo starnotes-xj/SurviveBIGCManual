@@ -468,7 +468,8 @@
         tracker.dataset.cnIcount = hostname;
         tracker.src = `https://icount.kr/c.js?id=${encodeURIComponent(hostname)}`;
         tracker.addEventListener('error', markUnavailable, { once: true });
-        document.head.appendChild(tracker);
+        /* iCount reads the last script tag to obtain its site ID. */
+        document.body.appendChild(tracker);
       }
 
       pollId = window.setInterval(() => {
