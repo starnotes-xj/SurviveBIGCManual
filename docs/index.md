@@ -60,7 +60,7 @@ hide:
 
     ---
 
-    梯子、GitHub、Google、Notion、Claude Code。学习的基础设施。
+    GitHub、Google、Notion、Claude Code，以及按需配置的网络连接工具。学习的基础设施。
 
     [:octicons-arrow-right-24: 配置工具链](04-账号与工具/index.md)
 
@@ -91,7 +91,7 @@ hide:
     **第一周必做清单：**
 
     1. :material-bank: 去黄村分行办 [北京银行卡](05-校园生活/银行卡办理/北京银行卡.md)，奖学金、饭补都靠它
-    2. :material-vpn: 搞定 [梯子](04-账号与工具/梯子获取.md)，这是一切的前提
+    2. :material-vpn: 按需配置[网络连接工具](04-账号与工具/梯子获取.md)，并遵守网络使用规定
     3. :material-github: 注册 [GitHub 账号](04-账号与工具/GitHub注册与使用/注册与配置.md)
     4. :material-google: 注册 [Google 账号](04-账号与工具/Google账号/注册与常见问题.md)
     5. :material-email-check: 申请 [学校教育邮箱](04-账号与工具/教育邮箱申请.md)，换取大量免费工具

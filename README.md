@@ -20,7 +20,7 @@
 | 🎓 **入门** | 专业介绍、学习路径、必备工具清单 |
 | 🛡️ **技术方向** | CTF 竞技、安全环境搭建、Java/Spring 开发技能 |
 | 🔧 **工具与问题** | Windows 效率优化、CLion、Docker、常见环境问题 |
-| 🔑 **账号与工具** | 梯子、GitHub、Google、JetBrains、Claude Code、ChatGPT |
+| 🔑 **账号与工具** | 网络连接工具、GitHub、Google、JetBrains、Claude Code、ChatGPT |
 | 🏫 **校园生活** | 银行卡办理、教材与网课、校园实用信息 |
 
 ## 本地预览
