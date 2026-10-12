@@ -2,6 +2,8 @@
 
 > 此页面介绍 `vnc-drill-integrated` 的用途和安全边界。公开站点不提供可直接用于远程命令执行、凭据采集或数据回传的脚本包。
 
+**下载：** [公开安全版 Skill（ZIP）](downloads/vnc-drill-skill-safe.zip)（仅含授权边界与证据复核说明，不含远程控制或数据采集脚本。）
+
 **快速跳转：** [用途](#purpose) · [建议工作顺序](#workflow) · [安全边界](#safety) · [运行环境](#environment) · [CTF 是什么](../02-技术方向/CTF竞技/CTF是什么.md) · [CTF 学习资源](../02-技术方向/CTF竞技/学习资源.md)
 
 ## 用途 { #purpose }
