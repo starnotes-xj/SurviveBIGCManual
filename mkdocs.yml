@@ -121,6 +121,8 @@ nav:
       - 正则表达式: 02-技术方向/开发技能/正则表达式.md
   - SKILL:
     - VNC 自动打演练: 06-SKILL/vnc-drill-integrated.md
+    - CTF 比赛解题: 06-SKILL/ctf-competition.md
+    - C盘清理: 06-SKILL/clean-c-drive.md
   - 工具与问题:
     - 03-工具与问题/index.md
     - Windows常见问题:
