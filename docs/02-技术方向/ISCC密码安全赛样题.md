@@ -5,6 +5,8 @@
 > 难度：★ 基础必拿 · ★★ 区域赛主力 · ★★★ 拉分题。先自己做，再看 `答案与解析`（默认折叠）。
 > **出题模型：DeepSeek Flash**
 
+> **SageMath 说明**：数学/计算类题目的解析内附 SageMath 解法，全部在 **SageMath 10.9**（WSL + conda 环境）实测通过；没有 Sage 时用解析里的纯 Python 版本即可。
+
 ## 套题目录
 
 | 套次 | 出题模型 | 侧重 | 题量 | 入口 |
@@ -77,6 +79,13 @@ c = 1999286784415593499282040789280711530919051313065582439478677085042802922258
 
     **判据**：`e` 小（3）且明文短 → 先比一下密文位数和 n 的位数，差很多就直接开方。若 `m³ > n` 但 `m` 仍偏小，可用 Coppersmith 格攻击，工具 `sage` + `small_roots`。
 
+    **SageMath 解法**（10.9 实测）：`Integer.nth_root` 自带精确开方：
+
+    ```python
+    m, exact = Integer(c).nth_root(3, truncate_mode=1)
+    print(m.to_bytes(32, 'big').strip(b'\x00').decode())   # flag{small_e_attack}
+    ```
+
 ### S-A3 RSA 共模攻击 ★★★
 
 同一套系统给两个用户发了公钥，**模数 n 相同**，指数不同：
@@ -108,6 +117,14 @@ e2 = 65537   c2 = 25560079330000352260235820358543501627037893806746513039629379
 
     本题实际解出 `u=30841, v=-8`。考点：扩展欧几里得 + 负指数转模逆。**识别特征**：题目给"同一个 n、两个 e"就是它。
 
+    **SageMath 解法**（10.9 实测）：`xgcd` 一步给出贝祖系数，`power_mod` 支持负指数：
+
+    ```python
+    g, u, v = xgcd(17, 65537)
+    m = (power_mod(c1, u, n) * power_mod(c2, v, n)) % n
+    print(m.to_bytes(32, 'big').strip(b'\x00').decode())   # flag{common_modulus}
+    ```
+
 ### S-A4 AES-ECB 结构泄露 ★★
 
 某系统用 AES-128-ECB 加密一条结构化记录，密钥固定（`00112233445566778899aabbccddeeff`，仅本题已知）。密文（hex，共 64 字节）：
@@ -138,89 +155,63 @@ e2 = 65537   c2 = 25560079330000352260235820358543501627037893806746513039629379
 
 ### S-A5 口令存储 ★★
 
-数据库泄露了三个用户的口令哈希：
+某教务系统 2018 年上线，**口令策略：6 位纯数字**。泄露导出的口令表里混着三个不同时期模块的用户，存储方式各不相同：早期模块用裸 MD5；中期改造加了全局前缀，即 `md5("iscc" + 明文)`；最新模块改用 SHA-256、只保留前 32 位十六进制。
 
 ```
 alice : e10adc3949ba59abbe56e057f20f883e
-bob   : cf64be03a989a9c15d3a5309586c8ddb     （规则：md5("iscc" + 明文)）
-carol : 8d969eef6ecad3c29a3a629280e686cf
+bob   : da3f65b8235b7a0466e201d525bc4cb9
+carol : 92925488b28ab12584ac8fcaa8a27a0f
 ```
 
-**任务**：恢复 alice 的口令明文。
+**任务**：分别恢复三人的口令明文，并写出所用的工具与命令。
 
-**所需知识**：哈希函数与彩虹表、每用户随机盐、慢哈希（bcrypt/scrypt/Argon2）、GPU 离线爆破常识
+**所需知识**：哈希类型识别与 hashcat 模式选择（-m 0 / -m 20）、掩码攻击与字典攻击、固定盐 vs 每用户随机盐、慢哈希（bcrypt/scrypt/Argon2）、截断哈希的工具适配、GPU 离线爆破常识
 
 ??? tip "答案与解析"
-    **答案：`123456`**（`md5("123456") = e10adc39…`）
+    **答案：alice=`123456`，bob=`520520`，carol=`888888`**
 
-    **第一步：识别哈希类型**。32 位小写十六进制 → 基本可断定 MD5（可用 `hashid <哈希>` 或对照 `hashcat --example-hashes | grep -A2 -i md5` 确认，对应 hashcat 模式 `-m 0`）。
+    **先看清搜索空间**：题干两条信息是解题前提——口令策略"6 位纯数字"把每人空间框死在 10⁶（任何 CPU 都秒级）；三个模块存储方式不同，所以**不存在一条命令通吃**，要分别选路径。真实场景没有策略提示时，标准动作同样是**先跑 rockyou 字典**（本例 alice 的口令就是字典第 1 条，照样秒出），不中再上掩码。
 
-    然后按"由省力到费力"的顺序尝试，四条路任选其一：
+    **① alice：裸 MD5 → hashcat `-m 0`**
 
-    **方法一：在线彩虹表查询（赛前平时可用，比赛禁网不可用）**
-
-    md5decrypt.net、cmd5、hashes.com 等站点对常见口令秒出。**比赛不允许联网，此路赛场上直接跳过。**
-
-    **方法二：hashcat 掩码爆破（离线，主力工具）**
-
-    把哈希存进 `hashes.txt`（一行一个），6 位纯数字的掩码是 `?d?d?d?d?d?d`：
+    32 位小写 hex 即 MD5。6 位纯数字的掩码是 `?d`×6：
 
     ```bash
-    hashcat -m 0 -a 3 hashes.txt "?d?d?d?d?d?d"        # -m 0 = MD5，-a 3 = 掩码
-    # 常用掩码：?d 数字 ?l 小写 ?u 大写 ?a 全字符；8 位以内数字/字母任何 GPU 都是秒级
-    ```
-
-    字典攻击（Kali 自带 rockyou）配合规则变体，覆盖"有点复杂的口令"：
-
-    ```bash
+    # hashes.txt：e10adc3949ba59abbe56e057f20f883e
+    hashcat -m 0 -a 3 hashes.txt "?d?d?d?d?d?d"        # -a 3 = 掩码模式，实测秒出
     hashcat -m 0 -a 0 hashes.txt /usr/share/wordlists/rockyou.txt -r /usr/share/hashcat/rules/best64.rule
     ```
 
-    同源工具 john：`john --format=raw-md5 --wordlist=rockyou.txt hashes.txt`
+    （字典路径：rockyou 第 1 条就是 `123456`。纯 Python 遍历 10⁶ 实测 0.3 秒，无 GPU 也无妨。）
 
-    **方法三：没有 GPU/工具时，纯 Python 兜底（本题实测 0.3 秒）**
+    **② bob：盐前缀 → hashcat `-m 20`（md5($salt.$pass)）**
 
-    6 位数字空间只有 10⁶，CPU 都是一眨眼：
-
-    ```python
-    import hashlib, itertools
-    target = 'e10adc3949ba59abbe56e057f20f883e'
-    for t in itertools.product('0123456789', repeat=6):
-        if hashlib.md5(s := ''.join(t).encode()).hexdigest() == target:
-            print('口令:', s.decode()); break          # 123456
-    ```
-
-    空间一大就要换 hashcat（GPU 每秒十亿级 MD5）或更聪明的字典。
-
-    **第二步：bob 的固定盐怎么破（`-m 20`：盐在前的 MD5）**
-
-    `md5("iscc" + 明文)` 是"盐前缀"，hashcat 用 `盐:哈希` 格式写进文件、选 `-m 20`（md5($salt.$pass)）：
+    `md5("iscc" + 明文)` 的盐在明文**前面**，对应模式 20；`盐:哈希` 格式写文件：
 
     ```bash
-    # hashes.txt 写成：cf64be03a989a9c15d3a5309586c8ddb:iscc
-    hashcat -m 20 -a 0 hashes.txt rockyou.txt
+    # hashes.txt：da3f65b8235b7a0466e201d525bc4cb9:iscc
+    hashcat -m 20 -a 3 hashes.txt "?d?d?d?d?d?d"
     ```
 
-    纯 Python 同理：`md5(("iscc" + w).encode())` 遍历字典即可。**要点：固定盐（全局盐）只挡彩虹表，挡不住字典/爆破**——盐是公开的，攻击者原样拼上就行。
+    纯 Python 等价：`md5(("iscc" + f"{n:06d}").encode())` 遍历 10⁶ → `520520`。**要点：固定全局盐只挡彩虹表，挡不住字典/掩码**——盐就写在题目（真实世界是配置/代码）里，攻击者原样拼上即可。
 
-    **第三步：carol 的截断 SHA-256（工具适配坑）**
+    **③ carol：截断 SHA-256 → hashcat 没有现成模式，必须自己写前缀比对**
 
-    `8d969eef…` 只有 32 位 hex = 128 bit，是 `sha256("123456")` 的**前 32 位**。hashcat/john 没有"取哈希前一半比对"的现成模式——这类**截断哈希只能自己写比对**：
+    只保留前 32 位 hex（128 bit）的截断哈希，hashcat/john 都没有"取前一半比对"的模式——这是本题的工具适配考点：
 
     ```python
     import hashlib
-    target = '8d969eef6ecad3c29a3a629280e686cf'
-    for w in open('rockyou.txt', encoding='utf-8', errors='ignore'):
-        if hashlib.sha256(w.rstrip('\n').encode()).hexdigest()[:32] == target:
-            print(w.strip()); break                     # 123456
+    for n in range(1000000):
+        if hashlib.sha256(f'{n:06d}'.encode()).hexdigest()[:32] == '92925488b28ab12584ac8fcaa8a27a0f':
+            print(f'{n:06d}'); break                 # 888888
     ```
 
-    **复盘：为什么这三行全是反面教材**
+    **复盘：三种写法全是反面教材**
 
-    - 裸 MD5/SHA-256 存口令都不合格——GPU 每秒可算百亿次，rockyou 前 100 名口令全裸奔；
-    - bob 加了盐但是**固定盐**（全局盐），盐库泄露就一样能查；且算法仍是快哈希，GPU 照样全速跑；
-    - 正确做法：**每用户随机盐 + 慢哈希**（bcrypt / scrypt / Argon2id，国密场景 SM3 + PBKDF2 迭代）——对抗彩虹表靠"每用户随机盐"，对抗暴力破解靠"计算慢"；
-    - 实战补充：慢哈希（bcrypt 等）在 hashcat 里照样能跑（`-m 3200`），只是速度掉几个数量级——这就是"计算慢"的全部意义。
+    - 裸快哈希（alice）——GPU 每秒百亿次 MD5，6 位纯数字毫秒级；
+    - 固定全局盐 + 快哈希（bob）——盐公开，等于没加；
+    - 截断哈希（carol）——截短只让碰撞更容易，不增加爆破成本；
+    - 正确做法：**每用户随机盐（≥16 字节）+ 慢哈希**（bcrypt/scrypt/Argon2id，国密场景 SM3 + PBKDF2 迭代）。对抗彩虹表靠"每用户随机盐"，对抗爆破靠"计算慢"——bcrypt 在 hashcat 里照样能跑（`-m 3200`），速度掉五六个数量级，这正是设计目的。
 
 ---
 

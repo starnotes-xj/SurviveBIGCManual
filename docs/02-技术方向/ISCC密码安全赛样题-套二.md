@@ -2,6 +2,8 @@
 
 > 本套侧重工程与实现：真实协议字段（TLS/WPA2）、KDF 派生、反编译源码审计。所有数值用 Python 实算并交叉核验，可直接复现。难度：★ 基础 · ★★ 主力 · ★★★ 拉分。
 
+> **SageMath 说明**：数学/计算类题目的解析内附 SageMath 解法，全部在 **SageMath 10.9**（WSL + conda 环境）实测通过；没有 Sage 时用解析里的纯 Python 版本即可。
+
 ## 一、密码算法原理
 
 ### S2-A1 RSA dp 泄露：CRT 参数丢失即丢私钥 ★★★
@@ -54,7 +56,7 @@ AES-GCM 的认证标签 `tag = E_K(J0) ⊕ GHASH(H, A, C)`。GHASH 是 GF(2¹²�
 
 ```
 H   = f29000b62a499fd0a9f39a6add2e7780
-AAD = GET /api/transfer
+A   = GET /api/transfer
 C   = b5f494d63d5d7f2c5301ad730fe2f6070e35847b255d
 ```
 
@@ -88,6 +90,32 @@ C   = b5f494d63d5d7f2c5301ad730fe2f6070e35847b255d
     ```
 
     注意：约减常量是 `0xE1…00`（0x87 的位反转），X 的位从最高位判断。
+
+    **SageMath 解法**（10.9 实测）：商环 `GF(2)[x]/(x^128+x^7+x^2+x+1)` 直接做多项式乘法，无需手写移位——约定"块的最高位 = x⁰ 的系数"：
+
+    ```python
+    R2.<x> = GF(2)[]
+    K = R2.quotient(x^128 + x^7 + x^2 + x + 1)
+    def blk2poly(v):
+        return R2([(v >> (127 - i)) & 1 for i in range(128)])
+    def poly2blk(e):
+        out = 0
+        for c in e.lift().exponents():
+            out += 1 << (127 - c)
+        return int(out).to_bytes(16, 'big')
+    H = K(blk2poly(0xF29000B62A499FD0A9F39A6ADD2E7780))
+    A = b"GET /api/transfer"
+    C = bytes.fromhex('b5f494d63d5d7f2c5301ad730fe2f6070e35847b255d')
+    X = K(0)
+    for data in (A, C):
+        for i in range(0, len(data), 16):
+            X += K(blk2poly(int.from_bytes(data[i:i+16].ljust(16, b'\x00'), 'big')))
+            X *= H
+    v = (len(A)*8).to_bytes(8, 'big') + (len(C)*8).to_bytes(8, 'big')
+    X += K(blk2poly(int.from_bytes(v, 'big')))
+    X *= H
+    print(poly2blk(X).hex())     # b58a8c02dee68092a7e605d01c2b0e5d
+    ```
 
 ## 二、密码协议设计
 
@@ -391,6 +419,21 @@ c = 1422668bf7a79665bddc47ab007df58ca8977d103c2b59d319c423cad148443056ba135ae045
     ```
 
     适用条件 `d < n^(1/4)/3`。
+
+    **SageMath 解法**（10.9 实测）：连分数收敛列是内置功能，不用手写递推：
+
+    ```python
+    for cv in continued_fraction(Integer(e)/Integer(n)).convergents():
+        kk, dd = cv.numerator(), cv.denominator()
+        if kk == 0 or (e*dd - 1) % kk != 0:
+            continue
+        phi = (e*dd - 1)//kk
+        s = Integer((n - phi + 1)^2 - 4*n).isqrt()
+        if s*s == (n - phi + 1)^2 - 4*n:
+            break
+    m = power_mod(c, dd, n)
+    print(m.to_bytes((int(m).bit_length()+7)//8, 'big').decode())   # flag{wiener_small_d}
+    ```
 
 ### S2-F2 密钥流复用：同密钥两条 RC4 密文 ★★（计算）
 
