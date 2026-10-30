@@ -283,9 +283,9 @@ c3 = 307585987635387051130564761833020500258286052468461783607004983107891201026
     **SageMath 解法**（10.9 实测）：`crt` + `nth_root` 两行：
 
     ```python
-    MM = crt([c1, c2, c3], [n1, n2, n3])
-    m, exact = Integer(MM).nth_root(3, truncate_mode=1)
-    print(m.to_bytes(29, 'big').decode())           # flag{three_moduli_crt_attack}
+    from Crypto.Util.number import long_to_bytes
+    print(long_to_bytes(Integer(crt([c1, c2, c3], [n1, n2, n3])).nth_root(3)))
+    # flag{three_moduli_crt_attack}
     ```
 
 ### S4-A5 ECDSA 相关随机数攻击 ★★★（25 分）

@@ -79,8 +79,11 @@ c = 1999286784415593499282040789280711530919051313065582439478677085042802922258
 
     **判据**：`e` 小（3）且明文短 → 先比一下密文位数和 n 的位数，差很多就直接开方。若 `m³ > n` 但 `m` 仍偏小，可用 Coppersmith 格攻击，工具 `sage` + `small_roots`。
 
-    **SageMath 解法**（10.9 实测）：`Integer.nth_root` 自带精确开方：
+        **SageMath 解法**（10.9 实测）：`nth_root` 精确开立方，`long_to_bytes` 转字节（Sage 自带 pycryptodome）：
 
+    ```python
+    from Crypto.Util.number import long_to_bytes
+    print(long_to_bytes(Integer(c).nth_root(3)))   # flag{small_e_attack}
     ```python
     m, exact = Integer(c).nth_root(3, truncate_mode=1)
     print(m.to_bytes(32, 'big').strip(b'\x00').decode())   # flag{small_e_attack}
@@ -117,8 +120,12 @@ e2 = 65537   c2 = 25560079330000352260235820358543501627037893806746513039629379
 
     本题实际解出 `u=30841, v=-8`。考点：扩展欧几里得 + 负指数转模逆。**识别特征**：题目给"同一个 n、两个 e"就是它。
 
-    **SageMath 解法**（10.9 实测）：`xgcd` 一步给出贝祖系数，`power_mod` 支持负指数：
+        **SageMath 解法**（10.9 实测）：`xgcd` 一步给出贝祖系数，`pow` 原生支持负指数：
 
+    ```python
+    from Crypto.Util.number import long_to_bytes
+    g, u, v = xgcd(17, 65537)
+    print(long_to_bytes(pow(c1, u, n) * pow(c2, v, n) % n))   # flag{common_modulus}
     ```python
     g, u, v = xgcd(17, 65537)
     m = (power_mod(c1, u, n) * power_mod(c2, v, n)) % n

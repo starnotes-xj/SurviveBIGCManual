@@ -91,8 +91,21 @@ C   = b5f494d63d5d7f2c5301ad730fe2f6070e35847b255d
 
     注意：约减常量是 `0xE1…00`（0x87 的位反转），X 的位从最高位判断。
 
-    **SageMath 解法**（10.9 实测）：商环 `GF(2)[x]/(x^128+x^7+x^2+x+1)` 直接做多项式乘法，无需手写移位——约定"块的最高位 = x⁰ 的系数"：
+        **SageMath 解法**（10.9 实测）：商环 `GF(2)[x]/(x^128+x^7+x^2+x+1)` 直接做多项式乘法——约定"块的最高位 = x⁰ 的系数"：
 
+    ```python
+    from Crypto.Util.number import long_to_bytes
+    R2.<x> = GF(2)[]
+    K = R2.quotient(x^128 + x^7 + x^2 + x + 1)
+    b2p = lambda v: K(R2([(v >> (127 - i)) & 1 for i in range(128)]))
+    p2b = lambda e: long_to_bytes(sum(1 << (127 - c) for c in e.lift().exponents()), 16)
+    A, C = b"GET /api/transfer", bytes.fromhex('b5f494d63d5d7f2c5301ad730fe2f6070e35847b255d')
+    H, X = b2p(0xF29000B62A499FD0A9F39A6ADD2E7780), K(0)
+    for data in (A, C):
+        for i in range(0, len(data), 16):
+            X += b2p(int.from_bytes(data[i:i+16].ljust(16, b'\x00'), 'big')); X *= H
+    X += b2p(len(A)*8*2^64 + len(C)*8); X *= H
+    print(p2b(X).hex())     # b58a8c02dee68092a7e605d01c2b0e5d
     ```python
     R2.<x> = GF(2)[]
     K = R2.quotient(x^128 + x^7 + x^2 + x + 1)
@@ -423,16 +436,15 @@ c = 1422668bf7a79665bddc47ab007df58ca8977d103c2b59d319c423cad148443056ba135ae045
     **SageMath 解法**（10.9 实测）：连分数收敛列是内置功能，不用手写递推：
 
     ```python
+    from Crypto.Util.number import long_to_bytes
     for cv in continued_fraction(Integer(e)/Integer(n)).convergents():
         kk, dd = cv.numerator(), cv.denominator()
-        if kk == 0 or (e*dd - 1) % kk != 0:
-            continue
-        phi = (e*dd - 1)//kk
-        s = Integer((n - phi + 1)^2 - 4*n).isqrt()
-        if s*s == (n - phi + 1)^2 - 4*n:
-            break
-    m = power_mod(c, dd, n)
-    print(m.to_bytes((int(m).bit_length()+7)//8, 'big').decode())   # flag{wiener_small_d}
+        if kk and (e*dd - 1) % kk == 0:
+            phi = (e*dd - 1)//kk
+            s = Integer((n - phi + 1)^2 - 4*n).isqrt()
+            if s*s == (n - phi + 1)^2 - 4*n:
+                break
+    print(long_to_bytes(power_mod(c, dd, n)))   # flag{wiener_small_d}
     ```
 
 ### S2-F2 密钥流复用：同密钥两条 RC4 密文 ★★（计算）
