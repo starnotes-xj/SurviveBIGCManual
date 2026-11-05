@@ -139,6 +139,7 @@ nav:
     - C盘清理: 06-SKILL/clean-c-drive.md
   - 工具与问题:
     - 03-工具与问题/index.md
+    - tshark使用手册: 03-工具与问题/tshark使用手册.md
     - Windows常见问题:
       - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
       - PowerShell执行策略: 03-工具与问题/Windows常见问题/PowerShell执行策略.md
