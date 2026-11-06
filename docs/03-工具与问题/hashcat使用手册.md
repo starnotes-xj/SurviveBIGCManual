@@ -1,6 +1,6 @@
 # hashcat 使用手册（离线速查）
 
-> **抓取时间**：2026-11-06 · **版本对应**：hashcat v7.1.2（本机 Windows 安装版 `D:\hashcat-7.1.2\`）
+> **抓取时间**：2026-11-06 · **版本对应**：hashcat v8.0.0（本机 Windows `D:\hashcat-8.0.0\`，2026-11-06 从 v7.1.2 升级；模式号/参数两版兼容，本文按 7.1.2 整理的内容照用。旧版回退：`D:\hashcat-7.1.2-bak\`）
 >
 > 来源（比赛禁网离线查用）：
 > - 攻击模式 / 字符集 / 示例命令：本机 `hashcat --help`（v7.1.2 原文）+ [hashcat.net/hashcat](https://hashcat.net/hashcat/)

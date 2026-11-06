@@ -253,6 +253,18 @@ pkts = list(PcapReader(io.BytesIO(bytes(fixed[:24]) + bytes(body))))
 
 不想写脚本也不想手工？用 **GMSSL.lua 插件**——⚠️ **只使用本仓库的修补版** `03-工具与问题/scripts/GMSSL.lua`（上游 [leavesth/gmssl_wireshark](https://github.com/leavesth/gmssl_wireshark) 的原版存在五处缺陷：拼写错误、接管 443 后原生 `tls.*` 字段失效、Info 列描述拼接、跨段 record 不解析、丢消息——修补版已全部修复，文件头有 10 条 patch 说明，**勿直接从 GitHub 下载原版使用**）。**安装**：修补版放进 `%APPDATA%\Wireshark\plugins\`（Windows）；Linux/Kali 建议放全局目录 `/usr/lib/x86_64-linux-gnu/wireshark/plugins/`（全局目录不受"root 下禁用 Lua"限制，root 直跑也可用），重启 Wireshark/tshark 即加载（`tshark -G plugins` 可确认）。
 
+**字段名记不住？给 tshark 装 IDE 式补全**（仓库 `scripts/tshark_completions.ps1`，已实测）：
+
+```powershell
+# 一次性安装（Windows pwsh）：把补全脚本点源进 $PROFILE
+Add-Content $PROFILE '. D:\笔记\MD\SurviveBIGCManual\docs\03-工具与问题\scripts\tshark_completions.ps1'
+# 之后新开 pwsh：敲 -e 或 -Y 后按 Tab / Ctrl+Space，弹出字段候选（含 GMSSL.* 插件字段）
+tshark -e GMSSL.Hello.C<Tab>      # → CertLen / CertReq / CertVerify …
+tshark -e tls.handshake.c<Tab>    # → cert_type / ciphersuite …
+```
+
+Kali/bash 的等价补全见知识库 [#606](https://bigcctf.org.cn/wiki/606)（`tshark-complete.sh` + `tf` 字段搜索助手）。
+
 插件默认只挂 **tcp.port 443**：443 端口的国密流量自动按 GMSSL 协议解析（协议列变 GMSSL，消息名直接可见，CKE/SKE 载荷字段化）。其他端口用 decode-as 强制：
 
 ```bash
