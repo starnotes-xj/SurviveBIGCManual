@@ -140,6 +140,8 @@ nav:
   - 工具与问题:
     - 03-工具与问题/index.md
     - tshark使用手册: 03-工具与问题/tshark使用手册.md
+    - hashcat使用手册: 03-工具与问题/hashcat使用手册.md
+    - EBCTFCodeBox工具箱真题实战: 03-工具与问题/EBCTFCodeBox工具箱-真题四题实战.md
     - Windows常见问题:
       - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
       - PowerShell执行策略: 03-工具与问题/Windows常见问题/PowerShell执行策略.md

@@ -251,7 +251,7 @@ pkts = list(PcapReader(io.BytesIO(bytes(fixed[:24]) + bytes(body))))
 
 ## 9. 现成 Lua 插件：GMSSL.lua（国密握手直接字段化）
 
-不想写脚本也不想手工？社区有现成 Wireshark Lua 插件 [leavesth/gmssl_wireshark](https://github.com/leavesth/gmssl_wireshark)——单文件 `GMSSL.lua`（本仓库 `03-工具与问题/scripts/GMSSL.lua` 有存档副本）。**安装**：放进 `%APPDATA%\Wireshark\plugins\`（Windows）或 `~/.local/lib/wireshark/plugins/`（Linux），重启 Wireshark/tshark 即加载（`tshark -G plugins` 可确认）。
+不想写脚本也不想手工？用 **GMSSL.lua 插件**——⚠️ **只使用本仓库的修补版** `03-工具与问题/scripts/GMSSL.lua`（上游 [leavesth/gmssl_wireshark](https://github.com/leavesth/gmssl_wireshark) 的原版存在五处缺陷：拼写错误、接管 443 后原生 `tls.*` 字段失效、Info 列描述拼接、跨段 record 不解析、丢消息——修补版已全部修复，文件头有 10 条 patch 说明，**勿直接从 GitHub 下载原版使用**）。**安装**：修补版放进 `%APPDATA%\Wireshark\plugins\`（Windows）；Linux/Kali 建议放全局目录 `/usr/lib/x86_64-linux-gnu/wireshark/plugins/`（全局目录不受"root 下禁用 Lua"限制，root 直跑也可用），重启 Wireshark/tshark 即加载（`tshark -G plugins` 可确认）。
 
 插件默认只挂 **tcp.port 443**：443 端口的国密流量自动按 GMSSL 协议解析（协议列变 GMSSL，消息名直接可见，CKE/SKE 载荷字段化）。其他端口用 decode-as 强制：
 
@@ -279,7 +279,7 @@ tshark -r f.pcap -d "tcp.port==10443,gmssl" -Y "GMSSL.Hello.ClientKeyExchangeDat
 
 GUI 用法（不想敲命令）：打开抓包 → 443 流量自动按 GMSSL 解析；非标端口选中任意相关包 → **Analyze → Decode As** → 加一条 `TCP(port) == 10443 → GMSSL` → 确定，之后协议列与字段过滤器同上。
 
-**存档副本是修补版**（文件头有 8 条 patch 说明；上游原版问题全部修复，含 Kimi 审查确认项）：
+**存档副本是修补版**（文件头有 10 条 patch 说明；上游原版问题全部修复，含 Kimi 审查确认项）：
 
 - 拼写：`Certficate` → `Certificate`、`COmpress` → `Compress`；
 - 接管 443 后原生 `tls.*` 字段失效 → GMSSL 分支链式调用原生解析器（仅循环前一次），`tls.*` 与 `GMSSL.*` 字段同帧共存；
@@ -287,6 +287,8 @@ GUI 用法（不想敲命令）：打开抓包 → 443 流量自动按 GMSSL 解
 - **跨 TCP 段无重组 → 已加 record 级 desegment 反重组**：跨段 record（如 1604B 证书链）完整解析，"Ignored Unknown Record" 消失；
 - 一个 record 含多条握手消息时丢消息 → record 内消息循环 + 每 record 无条件钳位到 recEnd（欠读/过冲都归位）；
 - **8 个消息解析器全部 pcall 隔离**（Kimi 审查 A 项）：畸形消息长度（如会话复用 ServerHello 的 32B session_id 触发越界）不再中止整帧解析，按消息头回退推进；
+- **CCS 与加密 Finished 分属不同帧**时密文帧会丢状态 → CCS 状态改**会话级**（方向四元组键，消费后清除，上限 4096）；
+- 套件查询表外提文件级（原版每次查表重建 ~420 项）；
 - CipherSuiteValue 十六进制显示（`0xe011`），ServerHello 帧也登记该字段。
 
 修补后两份真题 pcap 全部帧统一显示 GMSSL、`-V` 深查零 Lua 错误。**回归测试**：`scripts/test_gmssl.py` 一条命令全量验证（21 项：真题帧数/双消息/CKE 前缀/套件号/零错误 + 两个合成 pcap 测试——CCS 分帧状态与 0x30 截断不崩），插件再改动后必跑。保留脾气：
