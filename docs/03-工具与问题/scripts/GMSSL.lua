@@ -1,6 +1,31 @@
 -- @brief GMSSL Protocol dissector plugin
 -- @author ccs
 -- @date 20210113
+-- [patched 2026-11-06 by BIGC ret2shell]
+--  1) fix typos: Certficate -> Certificate, COmpressMethodLen -> CompressMethodLen
+--  2) chain native TLS dissector on GMSSL branch: tls.handshake.* / tls.* fields stay usable
+--     alongside GMSSL.* fields (fixes: port 443 takeover killed native fields)
+--  3) Info column keeps the native TLCP description (with SNI); plugin no longer
+--     overwrites it. fence_set does NOT exist in 4.6.9 Column API (Kimi review);
+--     second chained TLS call removed (it duplicated native fields when it ran)
+--  4) record-level TCP desegmentation (pinfo.desegment_*): records spanning
+--     multiple TCP segments now reassemble instead of truncating/ignored
+--  5) per-record inner message loop: GM/T 0024 allows multiple handshake messages
+--     in one record (e.g. CertificateRequest+ServerHelloDone); Finished now
+--     advances offset; unknown msg types skip by header length; force resync
+--     to recEnd after each record
+--  6) guard version probe when tvb:len() < 3
+--  7) CipherSuiteValue displayed as hex (base.HEX); ServerHello now also
+--     registers the value field (original only set the string field)
+--  8) pcall isolation for all 8 message parsers + unconditional offset sync
+--     to recEnd (Kimi review item A): malformed message lengths no longer
+--     abort the frame (e.g. session-resumption ServerHello range overrun)
+--  9) conversation-keyed CCS state (Kimi item D): an encrypted-Finished record
+--     arriving in a *later frame* than the CCS record is now tagged as
+--     EncryptedHelloData (function-local flag lost state across frames);
+--     state table capped at 4096 entries
+-- 10) cipher-suite table hoisted to file scope (Kimi item F): was rebuilt on
+--     every lookup call
 
 -- create a new dissector
 local NAME = "GMSSL"
@@ -24,9 +49,9 @@ fields.helloSesId = ProtoField.bytes(NAME .. ".Hello.SesId", "SessionId")
 
 fields.helloCipherSuiteLen = ProtoField.uint16(NAME .. ".Hello.CipherSuiteLen", "CipherSuiteLen")
 fields.helloCipherSuite = ProtoField.string(NAME .. ".Hello.CipherSuite", "CipherSuite")
-fields.helloCipherSuiteValue = ProtoField.uint16(NAME .. ".Hello.CipherSuite.CipherSuiteValue", "CipherSuite")
+fields.helloCipherSuiteValue = ProtoField.uint16(NAME .. ".Hello.CipherSuite.CipherSuiteValue", "CipherSuite", base.HEX)  -- [patch] 十六进制显示, 套件一眼可辨(0xE011/E013)
 
-fields.helloCompessMethodLen = ProtoField.uint8(NAME .. ".Hello.CompressMethodLen", "COmpressMethodLen")
+fields.helloCompessMethodLen = ProtoField.uint8(NAME .. ".Hello.CompressMethodLen", "CompressMethodLen")
 fields.helloCompessMethod = ProtoField.bytes(NAME .. ".Hello.CompressMethod", "CompressMethod")
 
 fields.helloExtensionLen = ProtoField.uint16(NAME .. ".Hello.ExtensionLen", "ExtensionLen")
@@ -62,19 +87,46 @@ fields.alertData = ProtoField.bytes(NAME .. ".AlertData", "AlertData")
 
 --local clientHello = GMSSL.fields.clientHello
 
+-- [patch 2026-11-06 v2, per Kimi review item A] 解析器异常隔离:
+-- record 完整不保证消息体声称的长度合法; 单条消息解析越界抛异常时 pcall 兜底,
+-- 按消息头长度回退推进; 帧同步由外层 recEnd 强制重同步保证(record 帧长是唯一权威)
+local function safeParse(f, mtvb, pinfo, subtree)
+	local ok, ret = pcall(f, mtvb, pinfo, subtree)
+	if (ok and type(ret) == "number" and ret > 0)
+	then
+		return ret
+	end
+	return 4 + mtvb(1, 3):uint()
+end
+
+-- [patch v3, Kimi 清单 D 项] CCS 状态改会话级(按方向四元组键):
+-- CCS record 与其后的加密 Finished 可能分属不同帧/重组段, 函数局部量会丢状态,
+-- 导致密文帧被当握手消息解析。表只存"CCS 已见"的方向, EHS 消费后清除;
+-- 超过 4096 项整表重置(防长抓包内存增长, 同四元组复用属罕见)
+local ccsState = {}
+local ccsCount = 0
+local function ccsKey(pinfo)
+	return tostring(pinfo.src) .. ":" .. tostring(pinfo.src_port) .. "->" .. tostring(pinfo.dst) .. ":" .. tostring(pinfo.dst_port)
+end
+
 -- dissect packet
 function GMSSL.dissector (tvb, pinfo, tree)
 	local offset = 0
 	local isgm = 0
-	isgm = tvb(1, 2)
+	if (tvb:len() >= 3)
+	then
+		isgm = tvb(1, 2)
+	end
 	-- GMSSL version is 1.1
-	if (isgm:uint() ~= 0x0101)
+	if (isgm == 0 or isgm:uint() ~= 0x0101)
 	then
 		Dissector.get("tls"):call(tvb, pinfo, tree) -- Decode as origial TLS
 		return
 	end
 
-	local changeCipherOk = false
+	Dissector.get("tls"):call(tvb, pinfo, tree)  -- native tls.* fields (Info 受下方 fence 保护)
+	local ckey = ccsKey(pinfo)
+	local changeCipherOk = (ccsState[ckey] == true)
 	-- If GM ssl.
 	local maintree = tree:add(GMSSL, tvb())
 	pinfo.cols.protocol = GMSSL.name
@@ -82,6 +134,22 @@ function GMSSL.dissector (tvb, pinfo, tree)
 	local infoMsg = ""
 	while (offset < tvb:len())
 	do
+		-- [patch 2026-11-06] record 级 TCP 反重组: 头/体不完整则向 TCP 层要更多字节
+		local remain = tvb:len() - offset
+		if (remain < 5)
+		then
+			pinfo.desegment_offset = offset
+			pinfo.desegment_len = DESEGMENT_ONE_MORE_SEGMENT
+			return
+		end
+		local recLen = tvb(offset + 3, 2):uint()
+		if (remain - 5 < recLen)
+		then
+			pinfo.desegment_offset = offset
+			pinfo.desegment_len = recLen - (remain - 5)
+			return
+		end
+		local recEnd = offset + 5 + recLen   -- [patch] record 体结束位置
 		local type = tvb(offset, 1)
 		local subtree = maintree:add(GMSSL, tvb())
 
@@ -137,6 +205,9 @@ function GMSSL.dissector (tvb, pinfo, tree)
 			infoMsg = infoMsg .. "Change Cipher Spec;"
 			subtree:add(fields.changeCipherSpecMessage, tvb(offset, type:uint()))
 			offset = offset + type:uint()
+			if (ccsCount > 4096) then ccsState = {} ccsCount = 0 end
+			ccsCount = ccsCount + 1
+			ccsState[ckey] = true
 			changeCipherOk = true
 		elseif(dataType == 21) -- Alert
 		then
@@ -154,75 +225,92 @@ function GMSSL.dissector (tvb, pinfo, tree)
 				infoMsg = infoMsg .. "Encrypted HandShake Message;"
 				subtree:add(fields.encryptedHelloData, tvb(offset, type:uint()))
 				offset = offset + type:uint()
+				ccsState[ckey] = nil
 				changeCipherOk = false
 			else
-				-- parse types.		
-				type = tvb(offset, 1)
-				if (type:uint() == 1)
+				-- [patch 2026-11-06] record 内消息内循环: GM/T 0024 允许一个 record 含多条握手消息(如 CertificateRequest+ServerHelloDone)
+				while (offset < recEnd)
+				do
+					if (recEnd - offset < 4)
+					then
+						break
+					end
+					type = tvb(offset, 1)
+					if (type:uint() == 1)
 				then
 					subtree:append_text(": Client Hello")
 					infoMsg = infoMsg .. "Client Hello;"
-					parseoff = parseClientHello(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseClientHello, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 2)
 				then
 					subtree:append_text(": Server Hello")
 					infoMsg = infoMsg .. "Server Hello;"
-					parseoff = parseServerHello(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseServerHello, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 11)
 				then
 					--	certificate
-					subtree:append_text(": Certficate")
-					infoMsg = infoMsg .. "Certficate;"
-					parseoff = parseCertficate(tvb(offset):tvb(), pinfo, subtree)
+					subtree:append_text(": Certificate")
+					infoMsg = infoMsg .. "Certificate;"
+					parseoff = safeParse(parseCertificate, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 12)
 				then
 					-- server key exchange
 					subtree:append_text(": Server Key Exchange")
 					infoMsg = infoMsg .. "Server Key Exchange;"
-					parseoff = parseServerKeyExchange(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseServerKeyExchange, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 13)
 				then
 					--	certificate request
 					subtree:append_text(": Certificate Request")
 					infoMsg = infoMsg .. "Certificate Request;"
-					parseoff = parseCertficateRequest(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseCertificateRequest, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 14)
 				then
 					--	server hello done
 					subtree:append_text(": Server Hello Done")
 					infoMsg = infoMsg .. "Server Hello Done;"
-					parseoff = parseServerHelloDone(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseServerHelloDone, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 15)
 				then
 					--	certificate verify
 					subtree:append_text(": Certificate Verify")
 					infoMsg = infoMsg .. "Certificate Verify;"
-					parseoff = parseCertificateverify(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseCertificateverify, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 16)
 				then
 					--	client key exchange
 					subtree:append_text(": Client Key Exchange")
 					infoMsg = infoMsg .. "Client Key Exchange;"
-					parseoff = parseClientKeyExchange(tvb(offset):tvb(), pinfo, subtree)
+					parseoff = safeParse(parseClientKeyExchange, tvb(offset):tvb(), pinfo, subtree)
 					offset = offset + parseoff
 				elseif (type:uint() == 20)
 				then
 					--	finished
 					subtree:append_text(": Finished")
 					infoMsg = infoMsg .. "Finished;"
+					offset = offset + 4 + tvb(offset + 1, 3):uint()
+				else
+					-- [patch] 未知握手消息类型: 按消息头长度跳过, 保持帧同步
+					offset = offset + 4 + tvb(offset + 1, 3):uint()
+				end
 				end
 			end
 		end
+		-- [patch v2] 按 record 长度强制重同步(欠读/过冲一律钳到 recEnd)
+		offset = recEnd
 	end
 
-	pinfo.cols.info = infoMsg
+	-- [patch 2026-11-06 v2, per Kimi review] fence_set 在 4.6.9 Column API 中不存在
+	-- (此行抛 Lua 错误, 且使其后的第二次原生调用从未执行; 修复后第二次调用又会把
+	-- tls.handshake.type 等字段重复添加成 1,1)。故: Info 列沿用第一次原生调用写入的
+	-- 描述(含 SNI), 插件不再覆写; 第二次原生调用删除。
 end
 
 function parseClientHello(tvb, pinfo, tree) 
@@ -326,6 +414,7 @@ function parseServerHello(tvb, pinfo, tree)
 		offset = offset + sessionIdLen
 	end
 	local cipherSuite = tvb(offset, 2):uint()
+	subtree:add(fields.helloCipherSuiteValue, tvb(offset, 2)):append_text(string.format(": %s", getCipherSuite(cipherSuite)))  -- [patch] ServerHello 也登记数值字段(hex 显示)
 	subtree:add(fields.helloCipherSuite, cipherSuite):append_text(string.format(": 0x%04X:%s", cipherSuite, getCipherSuite(cipherSuite)))
 	offset = offset + 2
 	
@@ -352,12 +441,12 @@ function parseServerHello(tvb, pinfo, tree)
 end
 
 
-function parseCertficate(tvb, pinfo, tree)
+function parseCertificate(tvb, pinfo, tree)
 	local offset = 0
 
 	local subtree = tree:add_le("Certificate")
 	local type = tvb(offset, 1)
-	subtree:add(fields.helloType, type):append_text(": Certficate")
+	subtree:add(fields.helloType, type):append_text(": Certificate")
 	offset = offset + 1
 	-- Total Length
 	local totalLen = tvb(offset, 3):uint()	
@@ -412,11 +501,11 @@ function parseServerHelloDone(tvb, pinfo, tree)
 	return offset
 end
 
-function parseCertficateRequest(tvb, pinfo, tree)
+function parseCertificateRequest(tvb, pinfo, tree)
 	local offset = 0
-	local subtree = tree:add_le("CertficateRequest")
+	local subtree = tree:add_le("CertificateRequest")
 	local type = tvb(offset, 1)
-	subtree:add(fields.helloType, type):append_text(": CertficateRequest")
+	subtree:add(fields.helloType, type):append_text(": CertificateRequest")
 	offset = offset + 1
 	local lengs = tvb(offset, 3):uint()
 	subtree:add(fields.certReqLen, tvb(offset, 3)):append_text(": Length")
@@ -457,9 +546,10 @@ function parseCertificateverify(tvb, pinfo, tree)
 end
 
 -- Get cipher suite by Cipher ID.
-function getCipherSuite(cuiteId)
-	local cuiteTable = {}
-	cuiteTable[0x0001] = "TLS_RSA_WITH_NULL_MD5"
+-- [patch v3, Kimi 清单 F 项] 套件表外提到文件级: 原版每次调用重建整表(每个 ClientHello
+-- 的套件循环都重建一次 ~420 项), 现在进程内只建一次
+local cuiteTable = {}
+cuiteTable[0x0001] = "TLS_RSA_WITH_NULL_MD5"
     cuiteTable[0x0002] = "TLS_RSA_WITH_NULL_SHA"
     cuiteTable[0x0003] = "TLS_RSA_EXPORT_WITH_RC4_40_MD5"
     cuiteTable[0x0004] = "TLS_RSA_WITH_RC4_128_MD5"
@@ -875,6 +965,7 @@ function getCipherSuite(cuiteId)
     cuiteTable[0xE019] = "TLS1_CK_RSA_WITH_SM4_SM3"
 	cuiteTable[0xE01A] = "TLS1_CK_RSA_WITH_SM4_SHA1"
 	
+function getCipherSuite(cuiteId)
 	local retStr = cuiteTable[cuiteId]
 	if (retStr == nil)
 	then

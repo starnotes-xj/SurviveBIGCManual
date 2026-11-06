@@ -95,6 +95,29 @@ tshark -r f.pcap -w filtered.pcap -Y "tcp.port==443" # 过滤结果另存为新 
 
 Wireshark 4.0+ **原生支持 TLCP**（GB/T 38636-2020，record 版本 `0x0101`；GM/T 0024-2014 同结构）。实测基准：Wireshark 4.6.9 + ISCC 真题 SSL VPN 抓包。
 
+### 第一步：找服务端端口（decode-as 的参数从这来）
+
+ClientHello（握手第一条消息）的**目的端口 = 服务端端口**，一行定位：
+
+```bash
+tshark -r f.pcap -Y "tls.handshake.type == 1" -T fields -e tcp.dstport   # 真题数据1 → 10443
+```
+
+已装 GMSSL.lua 时，443 流量会被插件接管（原生 `tls.*` 字段不存在），换插件字段查：
+
+```bash
+tshark -r f.pcap -Y "GMSSL.Hello.Type == 1" -T fields -e tcp.dstport     # 真题数据2 → 443
+```
+
+通用兜底（与插件无关、永远可用）——会话统计表，端口就在冒号后面：
+
+```bash
+tshark -r f.pcap -q -z conv,tcp
+# 10.0.0.100:59813 <-> 10.0.0.2:443   ← 服务端 = 熟知端口那一侧(443/10443...)
+```
+
+默认包列表不显示端口，想知道每一帧的端口方向就抽字段：`-T fields -e tcp.srcport -e tcp.dstport -e _ws.col.Protocol`。拿到端口后的规则：443 → GMSSL 插件自动生效；其他端口 → `-d "tcp.port==该端口,gmssl"`。
+
 ### 7.1 认出它是国密
 
 ```
@@ -246,23 +269,33 @@ tshark -r f.pcap -d "tcp.port==10443,gmssl" -Y "GMSSL.Hello.ClientKeyExchangeDat
 | 字段（省略前缀） | 内容 | 真题实测 |
 |---|---|---|
 | `Hello.CipherSuite` | 套件**可读名**（字符串） | ClientHello 上 = `(2) Suites 57363,57395`（报出 offered 列表） |
-| `Hello.CipherSuite.CipherSuiteValue` | 套件数值（十进制） | ServerHello 上 = `57363`（即 0xe013） |
+| `Hello.CipherSuite.CipherSuiteValue` | 套件数值（**十六进制显示**） | ClientHello = `0xe011`；数据 2 = `0xe013,0xe033`；ServerHello 拍板 = `0xe013` |
 | `Hello.KeyExchange` | ServerKeyExchange 载荷 | `0300004104cf4b4a…`（65 字节点在偏移 13 起） |
 | `Hello.ClientKeyExchangeData` | ClientKeyExchange 载荷 | 数据 1：`0300004104fc57e6…`；数据 2：`009b308198…` |
 | `Hello.Random` / `Hello.SesId` | 随机数 / 会话 ID | ServerHello 实测 ✓ |
 | `Hello.CertReq` / `Hello.CertVerifyData` / `Hello.ApplicationData` | 证书请求 / 验证 / 加密数据 | 同前缀用法 |
 
-数值 ↔ 十六进制换算一行搞定：`python -c "print(hex(57363))"  # 0xe013`。
+套件一眼速查（offered 与拍板同屏）：`tshark -r f.pcap -Y "GMSSL.Hello.CipherSuite.CipherSuiteValue" -T fields -e frame.number -e _ws.col.Info -e GMSSL.Hello.CipherSuite.CipherSuiteValue`，输出如 `1 Client Hello 0xe011`、`2 Server Hello 0xe011`。
 
 GUI 用法（不想敲命令）：打开抓包 → 443 流量自动按 GMSSL 解析；非标端口选中任意相关包 → **Analyze → Decode As** → 加一条 `TCP(port) == 10443 → GMSSL` → 确定，之后协议列与字段过滤器同上。
 
-已知脾气：
+**存档副本是修补版**（文件头有 8 条 patch 说明；上游原版问题全部修复，含 Kimi 审查确认项）：
 
-- 默认只挂 443，其他端口要 `-d`（decode-as 名小写 `gmssl`）；字段前缀大写 `GMSSL.`；
-- 按单 TCP 段解析、无重组：跨段的长 record（如 1604B 证书）会显示 "SSL Continuation Data"；
-- 源码自带拼写错误（"Certficate"），照抄题名时注意；
-- ServerHello 上 `CipherSuite` 字符串列可能为空——读数值列 `CipherSuiteValue`（十进制：57361 = 0xe011、57363 = 0xe013、57395 = 0xe033）；
+- 拼写：`Certficate` → `Certificate`、`COmpress` → `Compress`；
+- 接管 443 后原生 `tls.*` 字段失效 → GMSSL 分支链式调用原生解析器（仅循环前一次），`tls.*` 与 `GMSSL.*` 字段同帧共存；
+- Info 列沿用原生 TLCP 描述（含 SNI），插件不覆写。**注**：最初用的 `fence_set` 在 4.6.9 Column API 中不存在（`-V` 才可见的 Lua 错误，stderr 不显示）；第二次原生调用会重复添加字段（`tls.handshake.type` 变 `1,1`）——两者均已删除（Kimi 审查发现）；
+- **跨 TCP 段无重组 → 已加 record 级 desegment 反重组**：跨段 record（如 1604B 证书链）完整解析，"Ignored Unknown Record" 消失；
+- 一个 record 含多条握手消息时丢消息 → record 内消息循环 + 每 record 无条件钳位到 recEnd（欠读/过冲都归位）；
+- **8 个消息解析器全部 pcall 隔离**（Kimi 审查 A 项）：畸形消息长度（如会话复用 ServerHello 的 32B session_id 触发越界）不再中止整帧解析，按消息头回退推进；
+- CipherSuiteValue 十六进制显示（`0xe011`），ServerHello 帧也登记该字段。
+
+修补后两份真题 pcap 全部帧统一显示 GMSSL、`-V` 深查零 Lua 错误。**回归测试**：`scripts/test_gmssl.py` 一条命令全量验证（21 项：真题帧数/双消息/CKE 前缀/套件号/零错误 + 两个合成 pcap 测试——CCS 分帧状态与 0x30 截断不崩），插件再改动后必跑。保留脾气：
+
+- 默认只挂 443，其他端口要 `-d`（decode-as 名小写 `gmssl`）；字段前缀大写 `GMSSL.*`；
+- 检查 Lua 错误要用 `tshark -r f.pcap -V 2>&1 | grep -i "lua"`——stderr 重定向**看不到**解析器内部错误；
 - 与原生 TLCP（第 7 节）互补：原生给 record 框架、套件号与单向/双向判定，本插件给 CKE/SKE 载荷字段。GUI 里 Decode As 对话框同样可用。
+
+另有两项 Kimi 清单项同批修复（patch 头第 9/10 条）：**CCS 状态改会话级**（按方向四元组键——CCS 与加密 Finished 分属不同帧时不再丢状态，密文帧正确标注 EncryptedHelloData，状态表上限 4096 防泄漏）；**套件表外提文件级**（原版每次查表重建 ~420 项）。
 
 ## 10. 常用组合命令十条（按比赛场景背）
 
