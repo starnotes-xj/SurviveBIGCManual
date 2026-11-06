@@ -49,6 +49,7 @@ tshark -r 文件.pcap -Y "显示过滤器" -T fields -e 字段1 -e 字段2
 
 | 协议 | 常用字段 / 表达式 |
 |---|---|
+| 通用列 | `_ws.col.Protocol`（协议列）`_ws.col.Info`（Info 摘要列——任何协议的"人话"描述） |
 | frame | `frame.number` `frame.len` `frame.time` `frame contains "pass"` |
 | eth | `eth.src` `eth.dst` `eth.type == 0x0800` |
 | ip | `ip.addr` `ip.src` `ip.dst` `ip.ttl < 10` `ip.proto == 6` |
@@ -117,6 +118,21 @@ tshark -r f.pcap -Y "tls.handshake" -T fields -e frame.number -e tls.handshake.t
 
 **单向/双向判定不靠背规范，数三个消息**：服务端 `CertificateRequest(13)`、客户端 `Certificate(11)`、`CertVerify(15)`——出现即双向。
 
+> 上表第 4 列的名字是**注释**，不是 `-T fields` 的输出——`-T fields` 只输出 `-e` 指定的字段（所以你的终端只有三列数字）。要 tshark 直接报消息名，加 **Info 列字段** `_ws.col.Info`：
+>
+> ```bash
+> tshark -r f.pcap -Y "tls.handshake" -T fields -e frame.number -e tls.handshake.type -e _ws.col.Info
+> # 1  1      Client Hello
+> # 2  2      Server Hello
+> # 3  11     Certificate
+> # 4  12     Server Key Exchange
+> # 5  13,14  Certificate Request, Server Hello Done
+> # 7  16     Client Key Exchange
+> # 8  15     Certificate Verify, Change Cipher Spec, Encrypted Handshake Message
+> ```
+
+**type 对照与"为什么写 2 / 写 16"**：`tls.handshake.type` 是协议常量（写死在规范里，任何 pcap 都一样）——1=ClientHello、**2=ServerHello**、11=Certificate、12=ServerKeyExchange、13=CertificateRequest、14=ServerHelloDone、**16=ClientKeyExchange**、15=CertVerify、20=Finished。**套件号没有 type**：它是协商结果，藏在 ServerHello（type 2）的载荷里，每个 pcap 可能不同。所以——想知道**用了什么算法** → 过滤 `type == 2` 读套件；想拿**预主密钥原料**（65 字节临时 SM2 公钥）→ 过滤 `type == 16` 切载荷；判**单向/双向** → 数 13/11/15 是否出现。理论推导见知识库 [#589](https://bigcctf.org.cn/wiki/589) 第 5–7 节。
+
 ### 7.2 套件号（ECDHE 还是 ECC）
 
 ```
@@ -153,6 +169,29 @@ print(b[13:13+65].hex())   # 跳过 record头5B + hs头4B + 前缀4B
 
 实测输出与手工逐字节解析完全一致（真题答案 `04fc57e6…21dace6d`）。
 
+### 不想手工？把切片逻辑存成脚本，一条命令
+
+上面的 record/握手两级头只需理解一次，之后交给现成脚本：本仓库 `03-工具与问题/scripts/tlcp_cke.py`（纯 Python、无第三方依赖）。它自动识别 modified 魔数（内置跳 8 字节）、重组 TCP 流、按两级头列出全部握手消息、自动抽出 65 字节临时公钥、自动报套件号：
+
+```bash
+python tlcp_cke.py f.pcap
+```
+
+真题实测节选（数据 2 是 modified pcap，脚本直接读、无需修复）：
+
+```
+== 流 3.3.3.4:49374 -> 3.3.3.3:10443
+  [ClientHello] ver=0x0101 len=41
+  [ClientKeyExchange] ver=0x0101 len=69
+      临时公钥候选(65B): 04fc57e6dbc62d06...21dace6d
+== 流 3.3.3.3:10443 -> 3.3.3.4:49374
+  [ServerHello] ver=0x0101 len=38
+      选定/出现套件: 0xe011(ECDHE_SM4_CBC_SM3) @偏移35
+  [CertificateRequest] ver=0x0101 len=6      ← 出现 = 双向认证
+```
+
+**顺带分清三个密码工具的分工**：GmSSL / Tongsuo / Python gmssl 是**算法与协议库**（自己发起 TLCP 连接、验签、拿密钥后的加解密）——它们不解析 pcap；抓包抽字段 = tshark（字段层）+ 这个脚本（载荷层）。CKE 里的临时公钥在 ChangeCipherSpec 之前，本来就是明文，所以这件事从头到尾不需要密码库。
+
 ### 7.4 预主密钥速记
 
 RSA 类套件 = 客户端生成 48 字节；ECC 套件 = SM2 密钥协商 **16 字节、双方共同产生**；ECDHE = 双临时密钥协商（具备前向安全）。
@@ -185,7 +224,45 @@ while off + 24 <= len(raw):
 pkts = list(PcapReader(io.BytesIO(bytes(fixed[:24]) + bytes(body))))
 ```
 
-## 9. 常用组合命令十条（按比赛场景背）
+## 9. 现成 Lua 插件：GMSSL.lua（国密握手直接字段化）
+
+不想写脚本也不想手工？社区有现成 Wireshark Lua 插件 [leavesth/gmssl_wireshark](https://github.com/leavesth/gmssl_wireshark)——单文件 `GMSSL.lua`（本仓库 `03-工具与问题/scripts/GMSSL.lua` 有存档副本）。**安装**：放进 `%APPDATA%\Wireshark\plugins\`（Windows）或 `~/.local/lib/wireshark/plugins/`（Linux），重启 Wireshark/tshark 即加载（`tshark -G plugins` 可确认）。
+
+插件默认只挂 **tcp.port 443**：443 端口的国密流量自动按 GMSSL 协议解析（协议列变 GMSSL，消息名直接可见，CKE/SKE 载荷字段化）。其他端口用 decode-as 强制：
+
+```bash
+# 注意大小写：decode-as 的名字是小写 gmssl，字段名前缀是大写 GMSSL.*
+tshark -r f.pcap -d "tcp.port==10443,gmssl" -Y "GMSSL.Hello.ClientKeyExchangeData" \
+  -T fields -e GMSSL.Hello.ClientKeyExchangeData
+# 输出 CKE 完整载荷（含 65 字节临时 SM2 公钥）：0300004104fc57e6...
+```
+
+实测（4.6.9 + 真题两份）：数据 2（443 端口）自动触发，数据 1（10443 端口）加 `-d` 后同样出 CKE 数据。
+
+**插件字段清单**（前缀 `GMSSL.`，全部实测可用）：
+
+| 字段（省略前缀） | 内容 | 真题实测 |
+|---|---|---|
+| `Hello.CipherSuite` | 套件**可读名**（字符串） | ClientHello 上 = `(2) Suites 57363,57395`（报出 offered 列表） |
+| `Hello.CipherSuite.CipherSuiteValue` | 套件数值（十进制） | ServerHello 上 = `57363`（即 0xe013） |
+| `Hello.KeyExchange` | ServerKeyExchange 载荷 | `0300004104cf4b4a…`（65 字节点在偏移 13 起） |
+| `Hello.ClientKeyExchangeData` | ClientKeyExchange 载荷 | 数据 1：`0300004104fc57e6…`；数据 2：`009b308198…` |
+| `Hello.Random` / `Hello.SesId` | 随机数 / 会话 ID | ServerHello 实测 ✓ |
+| `Hello.CertReq` / `Hello.CertVerifyData` / `Hello.ApplicationData` | 证书请求 / 验证 / 加密数据 | 同前缀用法 |
+
+数值 ↔ 十六进制换算一行搞定：`python -c "print(hex(57363))"  # 0xe013`。
+
+GUI 用法（不想敲命令）：打开抓包 → 443 流量自动按 GMSSL 解析；非标端口选中任意相关包 → **Analyze → Decode As** → 加一条 `TCP(port) == 10443 → GMSSL` → 确定，之后协议列与字段过滤器同上。
+
+已知脾气：
+
+- 默认只挂 443，其他端口要 `-d`（decode-as 名小写 `gmssl`）；字段前缀大写 `GMSSL.`；
+- 按单 TCP 段解析、无重组：跨段的长 record（如 1604B 证书）会显示 "SSL Continuation Data"；
+- 源码自带拼写错误（"Certficate"），照抄题名时注意；
+- ServerHello 上 `CipherSuite` 字符串列可能为空——读数值列 `CipherSuiteValue`（十进制：57361 = 0xe011、57363 = 0xe013、57395 = 0xe033）；
+- 与原生 TLCP（第 7 节）互补：原生给 record 框架、套件号与单向/双向判定，本插件给 CKE/SKE 载荷字段。GUI 里 Decode As 对话框同样可用。
+
+## 10. 常用组合命令十条（按比赛场景背）
 
 ```bash
 # 1 总览：文件什么类型、多少包
@@ -210,7 +287,7 @@ tshark -i eth0 -w cap.pcap
 tshark -r f.pcap -2 -q -z conv,tcp
 ```
 
-## 10. 常见坑
+## 11. 常见坑
 
 - `-T fields` 忘配 `-e` → 无输出；字段名全小写点分级，写错不报错只是空列。
 - `-Y` 里字符串必须带引号；`contains` 匹配字节串，`matches` 才是正则。
