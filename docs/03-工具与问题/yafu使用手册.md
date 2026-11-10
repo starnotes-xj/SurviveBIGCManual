@@ -42,7 +42,7 @@ cd C:\Users\星记\Downloads
 | `pm1(N)` / `pp1(N)` | P−1 / P+1 | 因子的 p−1/p+1 平滑时秒出，白捡的分 |
 | `rho(N)` | Pollard rho | 小因子快筛 |
 | `t(N)` | 纯试除 | 验证小素因子 |
-| `factor(@文件)` | 批量分解 | 文件里一行一个数 |
+| `yafu -batchfile 文件` | 批量分解（**v3 语法**） | 文件每行写 `factor(N)` 或 `factor((表达式))`；v1 的 `factor(@文件)` 在 v3 报 `unrecognized character: -1` |
 | `threads=N` | 线程数 | 默认自动（识别到 13900HX 全核） |
 | `tune` | 自校准 | 换机器时跑一次，写 yafu.ini |
 
@@ -67,7 +67,7 @@ yafu 上场的典型场景：
 1. **n ≤ ~70 位十进制**（RSA 里即 ≤232 bit 的小课题）：秒~分钟出，闭眼 `factor(n)`
 2. **n 有结构线索但缺一角**：如已知 p+q 或 φ(n) 的部分场景，先 Python 推出候选再 yafu 验证
 3. **快速素性判定**：比 sympy.isprime 更省心的整数黑盒（P<位数>=自身 即素数）
-4. **真题联动**：ISCC 真题卷的 `nb = q·r`——gcd 拿到 q 后，`factor(r)` 立即验证 r 是 37 位素数（0.1 秒）
+4. **复盘卷联动**：ISCC 测试平台复盘卷的 `nb = q·r`——gcd 拿到 q 后，`factor(r)` 立即验证 r 是 37 位素数（0.1 秒）
 
 **速度预期**（i9-13900HX 实测/推算）：c50 ≈ 0.1s · c60 ≈ 数秒 · c70 ≈ 分钟级 · c80 ≈ 十分钟~小时 · c100+ 需 NFS，比赛改思路别硬磨。
 

@@ -2,6 +2,12 @@ site_name: 北京印刷学院信息安全生存手册
 site_description: 面向北京印刷学院信息安全专业学生的实用指南
 site_author: 星记
 docs_dir: docs
+# ISCC 密码安全赛四套自拟样题已撤下（区域赛真题已归档 CTF 平台）；源文件保留在仓库，仅排除构建
+exclude_docs: |
+  02-技术方向/ISCC密码安全赛样题.md
+  02-技术方向/ISCC密码安全赛样题-套二.md
+  02-技术方向/ISCC密码安全赛样题-套三.md
+  02-技术方向/ISCC密码安全赛样题-套四.md
 copyright: Copyright &copy; 2025 北印信息安全专业同学共同维护 · MIT License
 
 theme:
@@ -114,11 +120,7 @@ nav:
     - 攻防演习: 02-技术方向/攻防演习.md
     - ISCC竞赛总览: 02-技术方向/ISCC竞赛总览.md
     - ISCC密码安全赛: 02-技术方向/ISCC密码安全赛.md
-    - ISCC密码安全赛样题: 02-技术方向/ISCC密码安全赛样题.md
-    - ISCC样题·套二（DeepSeek）: 02-技术方向/ISCC密码安全赛样题-套二.md
-    - ISCC样题·套三（GLM）: 02-技术方向/ISCC密码安全赛样题-套三.md
-    - ISCC样题·套四（模拟卷）: 02-技术方向/ISCC密码安全赛样题-套四.md
-    - ISCC真题复盘卷（2026-11实测）: 02-技术方向/ISCC密码安全赛真题卷.md
+    - ISCC测试平台复盘卷（2026-11赛前）: 02-技术方向/ISCC密码安全赛真题卷.md
     - 国密算法入门: 02-技术方向/国密算法入门.md
     - CTF竞技:
       - CTF是什么: 02-技术方向/CTF竞技/CTF是什么.md
@@ -142,7 +144,7 @@ nav:
     - tshark使用手册: 03-工具与问题/tshark使用手册.md
     - hashcat使用手册: 03-工具与问题/hashcat使用手册.md
     - yafu使用手册: 03-工具与问题/yafu使用手册.md
-    - EBCTFCodeBox工具箱真题实战: 03-工具与问题/EBCTFCodeBox工具箱-真题四题实战.md
+    - EBCTFCodeBox工具箱实战（测试平台四题）: 03-工具与问题/EBCTFCodeBox工具箱-真题四题实战.md
     - Windows常见问题:
       - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
       - PowerShell执行策略: 03-工具与问题/Windows常见问题/PowerShell执行策略.md

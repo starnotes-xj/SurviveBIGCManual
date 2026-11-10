@@ -1,7 +1,7 @@
 # tshark 使用手册（Wireshark 命令行 · 离线速查）
 
 > **面向线下赛**：全程本地命令，不依赖联网。基准版本 Wireshark 4.6.x（tshark 语法 3.x/4.x 通用，本文所有命令均在 Kali + Wireshark 4.6.9 实测）。
-> 配套阅读：[国密算法入门](../02-技术方向/国密算法入门.md)、[ISCC 真题复盘卷](../02-技术方向/ISCC密码安全赛真题卷.md)（国密 SSL VPN 流量实战）。
+> 配套阅读：[国密算法入门](../02-技术方向/国密算法入门.md)、[ISCC 测试平台复盘卷](../02-技术方向/ISCC密码安全赛真题卷.md)（国密 SSL VPN 流量实战）。
 
 ## 1. tshark 是什么、在哪
 
@@ -93,20 +93,20 @@ tshark -r f.pcap -w filtered.pcap -Y "tcp.port==443" # 过滤结果另存为新 
 
 ## 7. 国密 TLCP 流量解析（国内比赛重点）
 
-Wireshark 4.0+ **原生支持 TLCP**（GB/T 38636-2020，record 版本 `0x0101`；GM/T 0024-2014 同结构）。实测基准：Wireshark 4.6.9 + ISCC 真题 SSL VPN 抓包。
+Wireshark 4.0+ **原生支持 TLCP**（GB/T 38636-2020，record 版本 `0x0101`；GM/T 0024-2014 同结构）。实测基准：Wireshark 4.6.9 + ISCC 测试平台 SSL VPN 抓包。
 
 ### 第一步：找服务端端口（decode-as 的参数从这来）
 
 ClientHello（握手第一条消息）的**目的端口 = 服务端端口**，一行定位：
 
 ```bash
-tshark -r f.pcap -Y "tls.handshake.type == 1" -T fields -e tcp.dstport   # 真题数据1 → 10443
+tshark -r f.pcap -Y "tls.handshake.type == 1" -T fields -e tcp.dstport   # 测试平台数据1 → 10443
 ```
 
 已装 GMSSL.lua 时，443 流量会被插件接管（原生 `tls.*` 字段不存在），换插件字段查：
 
 ```bash
-tshark -r f.pcap -Y "GMSSL.Hello.Type == 1" -T fields -e tcp.dstport     # 真题数据2 → 443
+tshark -r f.pcap -Y "GMSSL.Hello.Type == 1" -T fields -e tcp.dstport     # 测试平台数据2 → 443
 ```
 
 通用兜底（与插件无关、永远可用）——会话统计表，端口就在冒号后面：
@@ -126,7 +126,7 @@ tshark -r f.pcap -Y "tls.record.version == 0x0101" -c 3
 tshark -r f.pcap -Y "tls.handshake" -T fields -e frame.number -e tls.handshake.type -e tls.record.version
 ```
 
-实测输出（ISCC 真题数据 1）：
+实测输出（ISCC 测试平台数据 1）：
 
 ```
 1  1      0x0101     ClientHello
@@ -164,8 +164,8 @@ tshark -r f.pcap -Y "tls.handshake.type == 2" -T fields -e tls.handshake.ciphers
 
 | 值 | 含义 |
 |---|---|
-| `0xe011` | ECDHE_SM4_CBC_SM3（真题数据 1，双向） |
-| `0xe013` | ECC_SM4_CBC_SM3——SM2 密钥交换协议（真题数据 2） |
+| `0xe011` | ECDHE_SM4_CBC_SM3（测试平台数据 1，双向） |
+| `0xe013` | ECC_SM4_CBC_SM3——SM2 密钥交换协议（测试平台数据 2） |
 | `0xe033` | ECCC_SM4_CBC_SM3（SM2 加密证书） |
 
 ### 7.3 抽 ClientKeyExchange 里的临时公钥（预主密钥核心数据）
@@ -190,7 +190,7 @@ print(b[13:13+65].hex())   # 跳过 record头5B + hs头4B + 前缀4B
 "
 ```
 
-实测输出与手工逐字节解析完全一致（真题答案 `04fc57e6…21dace6d`）。
+实测输出与手工逐字节解析完全一致（测试平台答案 `04fc57e6…21dace6d`）。
 
 **"去前 4 字节前缀"换个好记的说法**：hex 里 1 字节 = 2 个字符，所以就是**掐掉开头 8 个字符（`03000041`，其中 0x41 = 65 是长度声明），留下后面 130 个字符（`04` 开头 = 65 字节公钥）**。校验：8 + 130 = 138 = 69 字节 × 2。
 
@@ -202,7 +202,7 @@ print(b[13:13+65].hex())   # 跳过 record头5B + hs头4B + 前缀4B
 python tlcp_cke.py f.pcap
 ```
 
-真题实测节选（数据 2 是 modified pcap，脚本直接读、无需修复）：
+测试平台实测节选（数据 2 是 modified pcap，脚本直接读、无需修复）：
 
 ```
 == 流 3.3.3.4:49374 -> 3.3.3.3:10443
@@ -223,18 +223,18 @@ RSA 类套件 = 客户端生成 48 字节；ECC 套件 = SM2 密钥协商 **16 �
 
 ## 8. 魔改 pcap：Wireshark 能不能读？
 
-Wireshark 4.x 内置多种 90 年代魔改 libpcap 的**历史布局**，打开时逐个候选解释、读前 3 条记录打分择优。实测矩阵（真题数据逐一构造验证）：
+Wireshark 4.x 内置多种 90 年代魔改 libpcap 的**历史布局**，打开时逐个候选解释、读前 3 条记录打分择优。实测矩阵（测试平台数据逐一构造验证）：
 
 | 魔数 | 每包附加字节 | Wireshark 识别为 | 结果 |
 |---|---|---|---|
 | 标准 `d4c3b2a1` | 0 | 标准 pcap | ✓ |
 | 标准 `d4c3b2a1` | 4 | Nokia tcpdump - pcap | ✓ |
 | 标准 `d4c3b2a1` | 8 | RedHat 6.1 tcpdump - pcap | ✓ |
-| `34cdb2a1` | 8 | Modified tcpdump - pcap | ✓（真题数据 2） |
+| `34cdb2a1` | 8 | Modified tcpdump - pcap | ✓（测试平台数据 2） |
 | `34cdb2a1` | 12 | SuSE 6.3 tcpdump - pcap | ✓ |
 | `34cdb2a1` | 0 / 4 | 无对应变体 | ✗ 报损坏 / 乱码假包 |
 
-**用法**：先 `capinfos -t`——报出 "Modified/SuSE/RedHat/Nokia" 等名字就是能读，直接 `tshark -r` 上；scapy 拒读这些格式（只实现标准 pcap）。对于不在表内的自造 N，或要走 scapy 路线时，手工切包：按"16B 包头 + N 附加 + incl 数据"循环走文件（推导方法见真题卷思路回放），或用 scapy 前先修魔数重建：
+**用法**：先 `capinfos -t`——报出 "Modified/SuSE/RedHat/Nokia" 等名字就是能读，直接 `tshark -r` 上；scapy 拒读这些格式（只实现标准 pcap）。对于不在表内的自造 N，或要走 scapy 路线时，手工切包：按"16B 包头 + N 附加 + incl 数据"循环走文件（推导方法见测试平台复盘卷思路回放），或用 scapy 前先修魔数重建：
 
 ```python
 import struct, io
@@ -274,11 +274,11 @@ tshark -r f.pcap -d "tcp.port==10443,gmssl" -Y "GMSSL.Hello.ClientKeyExchangeDat
 # 输出 CKE 完整载荷（含 65 字节临时 SM2 公钥）：0300004104fc57e6...
 ```
 
-实测（4.6.9 + 真题两份）：数据 2（443 端口）自动触发，数据 1（10443 端口）加 `-d` 后同样出 CKE 数据。
+实测（4.6.9 + 测试平台两份）：数据 2（443 端口）自动触发，数据 1（10443 端口）加 `-d` 后同样出 CKE 数据。
 
 **插件字段清单**（前缀 `GMSSL.`，全部实测可用）：
 
-| 字段（省略前缀） | 内容 | 真题实测 |
+| 字段（省略前缀） | 内容 | 测试平台实测 |
 |---|---|---|
 | `Hello.CipherSuite` | 套件**可读名**（字符串） | ClientHello 上 = `(2) Suites 57363,57395`（报出 offered 列表） |
 | `Hello.CipherSuite.CipherSuiteValue` | 套件数值（**十六进制显示**） | ClientHello = `0xe011`；数据 2 = `0xe013,0xe033`；ServerHello 拍板 = `0xe013` |
@@ -303,7 +303,7 @@ GUI 用法（不想敲命令）：打开抓包 → 443 流量自动按 GMSSL 解
 - 套件查询表外提文件级（原版每次查表重建 ~420 项）；
 - CipherSuiteValue 十六进制显示（`0xe011`），ServerHello 帧也登记该字段。
 
-修补后两份真题 pcap 全部帧统一显示 GMSSL、`-V` 深查零 Lua 错误。**回归测试**：`scripts/test_gmssl.py` 一条命令全量验证（21 项：真题帧数/双消息/CKE 前缀/套件号/零错误 + 两个合成 pcap 测试——CCS 分帧状态与 0x30 截断不崩），插件再改动后必跑。保留脾气：
+修补后两份测试平台 pcap 全部帧统一显示 GMSSL、`-V` 深查零 Lua 错误。**回归测试**：`scripts/test_gmssl.py` 一条命令全量验证（21 项：测试平台帧数/双消息/CKE 前缀/套件号/零错误 + 两个合成 pcap 测试——CCS 分帧状态与 0x30 截断不崩），插件再改动后必跑。保留脾气：
 
 - 默认只挂 443，其他端口要 `-d`（decode-as 名小写 `gmssl`）；字段前缀大写 `GMSSL.*`；
 - 检查 Lua 错误要用 `tshark -r f.pcap -V 2>&1 | grep -i "lua"`——stderr 重定向**看不到**解析器内部错误；
