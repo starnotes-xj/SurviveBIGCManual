@@ -148,6 +148,7 @@ nav:
     - Windows常见问题:
       - 添加环境变量PATH: 03-工具与问题/Windows常见问题/添加环境变量PATH.md
       - PowerShell执行策略: 03-工具与问题/Windows常见问题/PowerShell执行策略.md
+      - PowerShell设置代理: 03-工具与问题/Windows常见问题/PowerShell设置代理.md
       - Windows效率优化: 03-工具与问题/Windows常见问题/Windows效率优化.md
       - 人脸识别解锁: 03-工具与问题/Windows常见问题/人脸识别解锁.md
     - 开发环境:
