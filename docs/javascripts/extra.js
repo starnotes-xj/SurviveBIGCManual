@@ -494,6 +494,29 @@
   }
 
   /* ═══════════════════════════════════════════════════════
+     校园站点链接 — 屏蔽 Referer
+        authserver.bigc.edu.cn/authserver/login 会按 Referer 白名单
+        过滤：从非 *.bigc.edu.cn 页面点击跳转时返回 404（响应体为空），
+        而地址栏直接访问（无 Referer）或校内页面跳转均正常。
+        这里给所有 *.bigc.edu.cn 链接加上 noreferrer / no-referrer，
+        让点击行为等同于直接访问。
+  ═══════════════════════════════════════════════════════ */
+  function initCampusLinks() {
+    document.querySelectorAll('a[href]').forEach(a => {
+      let host;
+      try { host = new URL(a.href, location.href).hostname; } catch (e) { return; }
+      if (host !== 'bigc.edu.cn' && !host.endsWith('.bigc.edu.cn')) return;
+      if (a.dataset.cnNoReferrer) return;
+      a.dataset.cnNoReferrer = '1';
+
+      a.setAttribute('referrerpolicy', 'no-referrer');
+      const rel = new Set((a.getAttribute('rel') || '').split(/\s+/).filter(Boolean));
+      rel.add('noreferrer');
+      a.setAttribute('rel', Array.from(rel).join(' '));
+    });
+  }
+
+  /* ═══════════════════════════════════════════════════════
      主入口 — MkDocs Material SPA 兼容
      document$ 是 Material 注入的 RxJS Observable，
      每次 SPA 导航后发射新文档；不存在则降级到 DOMContentLoaded
@@ -514,6 +537,7 @@
       const c6 = initVisitorStats();
       initCorners();
       initCodeLabels();
+      initCampusLinks();
       if (c1) cleanups.push(c1);
       if (c2) cleanups.push(c2);
       if (c3) cleanups.push(c3);
