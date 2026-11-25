@@ -9,6 +9,7 @@
 | Windows 效率优化 | [Win+R 快速启动、C 盘清理等](Windows常见问题/Windows效率优化.md) |
 | 普通摄像头人脸识别解锁 | [FaceWinUnlock-Tauri](Windows常见问题/人脸识别解锁.md) |
 | 添加环境变量 PATH | [添加环境变量PATH](Windows常见问题/添加环境变量PATH.md) |
+| 文件哈希校验 HashMyFiles | [图形化算 hash + 简体中文语言包、certutil/Get-FileHash 速查](文件哈希校验与HashMyFiles.md) |
 
 ## 开发环境
 
